@@ -330,7 +330,8 @@ exporter(async function (settings) {
       res.props.children[1].props.children.push(React.createElement('span', {
         style: {
           color: 'var(--text-muted)',
-          fontSize: '.9rem'
+          fontSize: '.9rem',
+          marginRight: '.9rem'
         }
       }, ' • ', pronouns));
     }
