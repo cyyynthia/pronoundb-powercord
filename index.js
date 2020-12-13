@@ -178,7 +178,7 @@ function fetchPronouns(platform, id) {
   if (!cache[platform][id]) {
     cache[platform][id] = new Promise(resolve => {
       const fetcher = fetchPronouns[symbolHttp];
-      fetcher(Endpoints.LOOKUP(platform, id)).then(data => resolve(Pronouns[data.pronouns]));
+      fetcher(Endpoints.LOOKUP(platform, id)).then(data => resolve(data.pronouns ? Pronouns[data.pronouns] : null));
     });
   }
 
@@ -230,7 +230,7 @@ fetchPronouns[symbolHttp] = fetchPronounsBulk[symbolHttp] = url => fetch(url, {
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-fetchPronouns[symbolHttp] = url => http.get(url).set('x-pronoundb-source', 'Powercord (v0.0.0-unknown)').then(r => r.body);
+fetchPronouns[symbolHttp] = url => http.get(url).set('x-pronoundb-source', 'Powercord (v0.0.0-unknown)').then(r => r.body).catch(() => ({}));
 
 const injections = [];
 function inject(mdl, meth, repl) {
