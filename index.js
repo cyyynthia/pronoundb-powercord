@@ -129,6 +129,7 @@ function extractFromFlux(FluxContainer) {
 const Pronouns = Object.freeze({
   unspecified: null,
   avoid: 'Avoid, use my name',
+  any: 'Any pronouns',
   hh: 'he/him',
   hs: 'he/she',
   ht: 'he/they',
