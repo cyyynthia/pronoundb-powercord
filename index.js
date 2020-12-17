@@ -183,7 +183,6 @@ const Endpoints = Object.freeze({
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-const symbolHttp = Symbol('pronoundb.http');
 
 function createDeferred() {
   let deferred = {};
@@ -205,7 +204,10 @@ function doFetchSingle(platform, id) {
     target: 'lookup',
     platform,
     id
-  }, resolve));
+  }, function (res) {
+    if (res.success) return resolve(res.data);
+    console.error('[PronounDB] Failed to fetch:', res.error);
+  }));
 }
 
 function doFetchBulk(platform, ids) {
@@ -220,7 +222,10 @@ function doFetchBulk(platform, ids) {
     target: 'lookup-bulk',
     platform,
     ids
-  }, resolve));
+  }, function (res) {
+    if (res.success) return resolve(res.data);
+    console.error('[PronounDB] Failed to fetch:', res.error);
+  }));
 }
 
 const cache = {};
@@ -261,12 +266,6 @@ async function fetchPronounsBulk(platform, ids) {
 
   return res;
 }
-
-fetchPronouns[symbolHttp] = url => fetch(url, {
-  headers: {
-    'x-pronoundb-source': 'Extension'
-  }
-}).then(r => r.json());
 
 /*
  * Copyright (c) 2020 Cynthia K. Rey, All rights reserved.
@@ -427,10 +426,27 @@ function run() {
       return React.createElement(React.Fragment, null, ...elements);
     });
     inject(Messages, 'type', function (_, res) {
-      const target = res.props.children.props.children[1].props.children.props.children;
-      target[1] = React.createElement(PronounsWrapper, {
-        items: target[1]
-      });
+      // ok discord, if you can't make up your mind I'll do it for ya
+      console.log(res.props.children.props.children[1].props);
+
+      if (typeof res.props.children.props.children[1].props.children === 'function') {
+        const ogFn = res.props.children.props.children[1].props.children;
+
+        res.props.children.props.children[1].props.children = function (e) {
+          const res = ogFn(e);
+          const items = res.props.children.props.children[1];
+          res.props.children.props.children[1] = React.createElement(PronounsWrapper, {
+            items
+          });
+          return res;
+        };
+      } else {
+        const target = res.props.children.props.children[1].props.children.props.children;
+        target[1] = React.createElement(PronounsWrapper, {
+          items: target[1]
+        });
+      }
+
       return res;
     });
     inject(MessageHeader, 'default', function ([props], res) {
