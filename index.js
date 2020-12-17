@@ -328,19 +328,10 @@ const Settings = webpack.React.memo(function ({
 function exporter(exp) {
   class PronounDB extends entities.Plugin {
     startPlugin() {
-      powercord.api.settings.registerSettings(this.entityID, {
-        category: this.entityID,
-        label: 'PronounDB',
-        render: Settings
-      });
-      exp({
-        get: (k, d) => this.settings.get(k, d),
-        set: (k, v) => this.settings.set(k, v)
-      });
+      exp();
     }
 
     pluginWillUnload() {
-      powercord.api.settings.unregisterSettings(this.entityID);
       injections.forEach(i => injector.uninject(i));
     }
 
