@@ -427,8 +427,6 @@ function run() {
     });
     inject(Messages, 'type', function (_, res) {
       // ok discord, if you can't make up your mind I'll do it for ya
-      console.log(res.props.children.props.children[1].props);
-
       if (typeof res.props.children.props.children[1].props.children === 'function') {
         const ogFn = res.props.children.props.children[1].props.children;
 
