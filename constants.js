@@ -1,5 +1,4 @@
 /*
- * https://www.pixiv.net/en/artworks/85776311
  * Copyright (c) 2020 Cynthia K. Rey, All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -13,9 +12,6 @@
  * 3. Neither the name of the copyright holder nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 4. Each source code file must contain in it's header or footer a comment containing a
- *    hyperlink to a publicly accessible resource of an image of a "catgirl"
- *    (https://en.wikipedia.org/wiki/Catgirl).
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED

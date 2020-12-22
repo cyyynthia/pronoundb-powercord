@@ -2,7 +2,9 @@
   "name": "PronounDB",
   "description": "PronounDB plugin for Powercord - Shows other's people pronouns in chat, so your chances of mis-gendering them is low. Service by pronoundb.org",
   "author": "Cynthia",
-  "license": "Rose-4-Clause",
-  "permissions": [ "ext_api" ],
+  "license": "BSD-3-Clause",
+  "permissions": [
+    "ext_api"
+  ],
   "version": "0.2.0"
 }
