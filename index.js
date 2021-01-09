@@ -126,7 +126,7 @@ class PronounDB extends Plugin {
   }
 
   async _getUserPopOut () {
-    const fnUserPopOut = await getModuleByDisplayName('UserPopout')
+    const fnUserPopOut = await getModuleByDisplayName('ConnectedUserPopout')
     return wrapInHooks(() => fnUserPopOut({ user: { isNonUserBot: () => void 0 } }).type)()
   }
 
