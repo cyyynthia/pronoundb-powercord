@@ -48,7 +48,8 @@ const Pronouns = Object.freeze({
   tt: 'they/them',
   // --
   other: 'Other pronouns',
-  other_ask: 'Other pronouns (Ask me)'
+  other_ask: 'Other pronouns (Ask me)', // legacy
+  ask: 'Ask me my pronouns'
 })
 
 module.exports = {
