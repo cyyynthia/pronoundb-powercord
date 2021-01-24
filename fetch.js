@@ -26,11 +26,11 @@
  */
 
 const { get: porkordGet } = require('powercord/http')
-const { Pronouns, Endpoints } = require('./constants')
+const { Endpoints } = require('./constants')
 
 function get (url) {
   return porkordGet(url)
-    .set('x-pronoundb-source', 'Powercord (v0.0.0-unknown)')
+    .set('x-pronoundb-source', 'Powercord (v1.1.0)')
     .then(r => r.body)
     .catch(() => ({}))
 }
@@ -45,7 +45,7 @@ const cache = {}
 function fetchPronouns (id) {
   if (!cache[id]) {
     cache[id] = get(Endpoints.LOOKUP(id))
-      .then(data => data.pronouns ? Pronouns[data.pronouns] : null)
+      .then(data => data.pronouns ?? null)
   }
   return cache[id]
 }
@@ -67,7 +67,7 @@ async function fetchPronounsBulk (ids) {
   if (toFetch.length > 0) {
     const data = await get(Endpoints.LOOKUP_BULK(toFetch))
     for (const id of toFetch) {
-      const pronouns = data[id] ? Pronouns[data[id]] : null
+      const pronouns = data[id] ?? null
       def[id].resolve(pronouns)
       res[id] = pronouns
     }

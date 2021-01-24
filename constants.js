@@ -37,19 +37,27 @@ const Pronouns = Object.freeze({
   avoid: 'Avoid pronouns, use my name',
   any: 'Any pronouns',
   // -- Contributors: please keep the list sorted alphabetically.
-  hh: 'he/him',
-  hs: 'he/she',
-  ht: 'he/they',
-  shh: 'she/he',
-  sh: 'she/her',
-  st: 'she/they',
-  th: 'they/he',
-  ts: 'they/she',
-  tt: 'they/them',
+  hh: [ 'he/him', 'He/Him' ],
+  hi: [ 'he/it', 'He/It' ],
+  hs: [ 'he/she', 'He/She' ],
+  ht: [ 'he/they', 'He/They' ],
+  ih: [ 'it/him', 'It/Him' ],
+  ii: [ 'it/its', 'It/Its' ],
+  is: [ 'it/she', 'It/She' ],
+  it: [ 'it/they', 'It/They' ],
+  shh: [ 'she/he', 'She/He' ],
+  sh: [ 'she/her', 'She/Her' ],
+  si: [ 'she/it', 'She/It' ],
+  st: [ 'she/they', 'She/They' ],
+  th: [ 'they/he', 'They/He' ],
+  ti: [ 'they/it', 'They/It' ],
+  ts: [ 'they/she', 'They/She' ],
+  tt: [ 'they/them', 'They/Them' ],
   // --
+  any: 'Any pronouns',
   other: 'Other pronouns',
-  other_ask: 'Other pronouns (Ask me)', // legacy
-  ask: 'Ask me my pronouns'
+  ask: 'Ask me my pronouns',
+  avoid: 'Avoid pronouns, use my name',
 })
 
 module.exports = {

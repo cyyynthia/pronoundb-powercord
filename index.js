@@ -28,20 +28,37 @@
 const { Plugin } = require('powercord/entities')
 const { inject, uninject } = require('powercord/injector')
 const { React, getModule, getModuleByDisplayName } = require('powercord/webpack')
-const { fetchPronouns } = require('./fetch')
-const { wrapInHooks } = require('./util')
+const { fetchPronouns, fetchPronounsBulk } = require('./fetch')
+const { wrapInHooks, formatPronouns } = require('./util')
 
 const PronounsWrapper = require('./PronounsWrapper')
 
 class PronounDB extends Plugin {
+  constructor () {
+    super()
+
+    this.Pronouns = this.settings.connectStore(
+      React.memo(
+        function ({ pronouns, getSetting }) {
+          // getSetting('styling', 'lower')
+          return formatPronouns(pronouns)
+        }
+      )
+    )
+  }
+
   async startPlugin () {
+    // todo: add settings for pronouns styling (and do disable pronouns from showing up in some places)
+
     this.loadStylesheet('style.css')
 
+    const _this = this
     const Messages = await this._getMessages()
     const MessageHeader = await this._getMessageHeader()
     const UserPopOut = await this._getUserPopOut()
     const UserProfileBody = await this._getUserProfileBody()
     const UserProfileInfo = await this._getUserProfileInfo()
+    const Autocomplete = await this._getAutocomplete()
 
     inject('pronoundb-messages-list', Messages, 'type', function (_, res) {
       // ok discord, if you can't make up your mind I'll do it for ya
@@ -65,7 +82,12 @@ class PronounDB extends Plugin {
     inject('pronoundb-messages-header', MessageHeader, 'default', function ([ props ], res) {
       if (props.message.__$pronouns) {
         res.props.children[1].props.children.push(
-          React.createElement('span', { style: { color: 'var(--text-muted)', fontSize: '.9rem', marginRight: props.compact ? '.6rem' : '' } }, ' • ', props.message.__$pronouns)
+          React.createElement(
+            'span',
+            { style: { color: 'var(--text-muted)', fontSize: '.9rem', marginRight: props.compact ? '.6rem' : '' } },
+            ' • ',
+            React.createElement(_this.Pronouns, { pronouns: props.message.__$pronouns })
+          )
         )
       }
       return res
@@ -75,7 +97,11 @@ class PronounDB extends Plugin {
       if (this.state?.__$pronouns) {
         res.props.children.props.children.push([
           React.createElement('div', { key: 'title', className: 'bodyTitle-Y0qMQz marginBottom8-AtZOdT size12-3R0845' }, 'Pronouns'),
-          React.createElement('div', { key: 'pronouns', className: 'marginBottom8-AtZOdT size14-e6ZScH' }, this.state.__$pronouns)
+          React.createElement(
+            'div',
+            { key: 'pronouns', className: 'marginBottom8-AtZOdT size14-e6ZScH' },
+            React.createElement(_this.Pronouns, { pronouns: this.state.__$pronouns })
+          )
         ])
       }
       return res
@@ -93,13 +119,88 @@ class PronounDB extends Plugin {
         res.props.children[0].props.className += ' has-pronouns'
         res.props.children[0].props.children.push([
           React.createElement('div', { key: 'title', className: 'userInfoSectionHeader-CBvMDh' }, 'Pronouns'),
-          React.createElement('div', { key: 'pronouns', className: 'marginBottom8-AtZOdT size14-e6ZScH colorStandard-2KCXvj' }, this.props.__$pronouns)
+          React.createElement(
+            'div',
+            { key: 'pronouns', className: 'marginBottom8-AtZOdT size14-e6ZScH colorStandard-2KCXvj' },
+            React.createElement(_this.Pronouns, { pronouns: this.props.__$pronouns })
+          )
         ])
       }
       return res
     })
 
-    // Data fetching
+    function autocompleteFetch () {
+      const items = this.props.children?.[0].props.children?.[1]
+      if (!items || !items[0].props.user) return null
+
+      let ids = items.map((item) => item.props.user.id)
+      if (!ids) return
+
+      ids = ids.filter((id) => !(id in this.state.__$pronouns))
+      if (ids.length === 0) return
+
+      // Mark ids as seen so they aren't re-fetched
+      this.setState((state) => ({
+        __$pronouns: {
+          ...(state?.__$pronouns ?? {}),
+          ...Object.fromEntries(ids.map((id) => [ id, null ]))
+        }
+      }))
+
+      fetchPronounsBulk(ids).then((pronouns) => {
+        this.setState((state) => ({
+          __$pronouns: {
+            ...(state?.__$pronouns ?? {}),
+            ...pronouns
+          }
+        }))
+
+        setTimeout(() => {
+          let child = this._reactInternalFiber.child.child.child.child.sibling.child
+          while (child) {
+            child.stateNode.forceUpdate()
+            child = child.sibling
+          }
+        }, 10)
+      })
+    }
+
+    inject('pronoundb-autocomplete-mount', Autocomplete.prototype, 'componentDidMount', function () {
+      this.state = { __$pronouns: {} }
+      autocompleteFetch.call(this)
+    })
+    inject('pronoundb-autocomplete-update', Autocomplete.prototype, 'componentDidUpdate', autocompleteFetch)
+
+    inject('pronoundb-autocomplete-render', Autocomplete.prototype, 'render', function (_, res) {
+      if (!this.state?.__$pronouns) return res
+
+      const items = res.props.children.props.children[0].props.children?.[1]
+      if (!items|| !items[0].props.user) return res
+
+      for (const item of items) {
+        item.props.__$pronouns = this.state.__$pronouns[item.props.user.id]
+      }
+    
+      return res
+    })
+
+    inject('pronoundb-autocomplete-render-row', Autocomplete.User.prototype, 'renderContent', function (_, res) {
+      if (!this.props.__$pronouns) return res
+
+      const section = res.props.children[2].props.children
+      section.push(
+        React.cloneElement(
+          section[0],
+          { style: { marginLeft: 4 } },
+          ' • ',
+          React.createElement(_this.Pronouns, { pronouns: this.props.__$pronouns })
+        )
+      )
+
+      return res
+    })
+
+    // Generic data fetching
     inject('pronoundb-popout-mount', UserPopOut.prototype, 'componentDidMount', this._fetchPronounsInReact)
     inject('pronoundb-profile-mount', UserProfileBody.prototype, 'componentDidMount', this._fetchPronounsInReact)
     inject('pronoundb-profile-update', UserProfileBody.prototype, 'componentDidUpdate', this._fetchPronounsInReact)
@@ -111,6 +212,11 @@ class PronounDB extends Plugin {
     uninject('pronoundb-popout-render')
     uninject('pronoundb-profile-render')
     uninject('pronoundb-profile-info-render')
+    uninject('pronoundb-autocomplete-mount')
+    uninject('pronoundb-autocomplete-update')
+    uninject('pronoundb-autocomplete-render')
+    uninject('pronoundb-autocomplete-render-row')
+
     uninject('pronoundb-popout-mount')
     uninject('pronoundb-profile-mount')
     uninject('pronoundb-profile-update')
@@ -150,6 +256,10 @@ class PronounDB extends Plugin {
     return this._extractFromFlux(
       UserProfile.prototype.render.call(fakeThis).props.children.props.children[1].props.children.type
     )
+  }
+
+  async _getAutocomplete () {
+    return getModuleByDisplayName('Autocomplete')
   }
 
   _extractFromFlux (FluxContainer) {

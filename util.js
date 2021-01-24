@@ -26,6 +26,7 @@
  */
 
 const { React } = require('powercord/webpack')
+const { Pronouns } = require('./constants.js')
 
 function wrapInHooks (fn) {
   return function (...args) {
@@ -54,4 +55,12 @@ function wrapInHooks (fn) {
   }
 }
 
-module.exports = { wrapInHooks }
+function formatPronouns (pronounsId, format) {
+  const pronouns = Pronouns[pronounsId]
+
+  return Array.isArray(pronouns)
+    ? format === 'pascal' ? pronouns[1] : pronouns[0]
+    : pronouns
+}
+
+module.exports = { wrapInHooks, formatPronouns }
