@@ -41,8 +41,19 @@ module.exports = React.memo(
       for (const i of props.items) {
         const authorId = i.props.message?.author.id
         if (authorId && pronouns[authorId]) {
-          const message = window._.clone(i.props.message)
-          message.__$pronouns = pronouns[authorId]
+          const message = new Proxy(i.props.message, {
+            get (target, prop) {
+              if (prop === '__$pronouns') {
+                return pronouns[authorId]
+              }
+              return target[prop]
+            },
+            set (target, prop, value) {
+              target[prop] = value
+              return true
+            }
+          })
+
           res.push(React.cloneElement(i, { message }))
         } else {
           res.push(i)
