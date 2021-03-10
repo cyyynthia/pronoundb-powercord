@@ -25,43 +25,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-const { React } = require('powercord/webpack')
-const { fetchPronounsBulk } = require('./fetch')
+const { get } = require('powercord/http')
+const { FluxDispatcher } = require('powercord/webpack')
+const { shouldFetchPronouns } = require('./store.js')
+const { FluxActions, Endpoints } = require('../constants.js')
 
-module.exports = React.memo(
-  props => {
-    const [ pronouns, setPronouns ] = React.useState({})
-    React.useEffect(() => {
-      const toFetch = [ ...new Set(props.items.filter(i => i.props.message && !i.props.message.author.bot).map(i => i.props.message.author.id)) ]
-      fetchPronounsBulk(toFetch).then(setPronouns)
-    }, [ props.items ])
+async function doLoadPronouns (ids) {
+  const pronouns = await get(Endpoints.LOOKUP_BULK(ids))
+      .set('x-pronoundb-source', 'Powercord (v2.0.0)')
+      .then(r => r.body)
+      .catch(() => ({}))
 
-    const elements = React.useMemo(() => {
-      const res = []
-      for (const i of props.items) {
-        const authorId = i.props.message?.author.id
-        if (authorId && pronouns[authorId]) {
-          const message = new Proxy(i.props.message, {
-            get (target, prop) {
-              if (prop === '__$pronouns') {
-                return pronouns[authorId]
-              }
-              return target[prop]
-            },
-            set (target, prop, value) {
-              target[prop] = value
-              return true
-            }
-          })
+  FluxDispatcher.dirtyDispatch({
+    type: FluxActions.PRONOUNS_LOADED,
+    pronouns: Object.assign(Object.fromEntries(Object.keys(ids).map((id) => [ id, null ])), pronouns)
+  })
+}
 
-          res.push(React.cloneElement(i, { message }))
-        } else {
-          res.push(i)
-        }
-      }
-      return res
-    }, [ props.items, pronouns ])
+let timer = null
+let buffer = []
 
-    return React.createElement(React.Fragment, null, ...elements)
+module.exports = {
+  loadPronouns: (id) => {
+    if (!shouldFetchPronouns(id) || buffer.includes(id)) return
+
+    if (!timer) {
+      timer = setTimeout(() => {
+        doLoadPronouns(buffer)
+        buffer = []
+        timer = null
+      }, 50)
+    }
+
+    buffer.push(id)
   }
-)
+}

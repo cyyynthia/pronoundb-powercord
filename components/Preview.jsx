@@ -25,55 +25,46 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-const { get: porkordGet } = require('powercord/http')
-const { Endpoints } = require('./constants')
+const { React, getModule } = require('powercord/webpack');
+const { WEBSITE } = require('../constants.js');
 
-function get (url) {
-  return porkordGet(url)
-    .set('x-pronoundb-source', 'Powercord (v1.1.0)')
-    .then(r => r.body)
-    .catch(() => ({}))
+const ChannelMessage = getModule([ 'getElementFromMessageId' ], false).default;
+const Message = getModule(m => m.prototype && m.prototype.getReaction && m.prototype.isSystemDM, false);
+const discordSettings = getModule([ 'messageDisplayCompact' ], false);
+
+const CHANNEL = {
+  isPrivate: () => false,
+  isSystemDM: () => false,
+  getGuildId: () => 'uwu',
+  isArchivedThread: () => false
+};
+
+const MESSAGE = new Message({
+  id: 'pronoundb-fake',
+  type: 0,
+  author: {
+    id: '94762492923748352',
+    username: 'Cynthia 🌹',
+    toString: () => 'Cynthia 🌹',
+    isSystemUser: () => false,
+    isVerifiedBot: () => false,
+    getAvatarURL: () => 'https://powercord.dev/api/v2/avatar/94762492923748352.png'
+  },
+  content: `By the way, to share your own pronouns go to ${WEBSITE} and set them there. <a:ablobcatheart:501940715077763072>`
+});
+
+function Settings ({ appearance }) {
+  return (
+    <div className='pronoundb-preview'>
+      <ChannelMessage
+        compact={discordSettings.messageDisplayCompact}
+        channel={CHANNEL}
+        message={MESSAGE}
+        id={`uwu-${appearance}`}
+        groupId='pronoundb-fake'
+      />
+    </div>
+  );
 }
 
-function createDeferred () {
-  let deferred = {}
-  deferred.promise = new Promise(resolve => Object.assign(deferred, { resolve }))
-  return deferred
-}
-
-const cache = {}
-function fetchPronouns (id) {
-  if (!cache[id]) {
-    cache[id] = get(Endpoints.LOOKUP(id))
-      .then(data => data.pronouns ?? null)
-  }
-  return cache[id]
-}
-
-async function fetchPronounsBulk (ids) {
-  const toFetch = []
-  const res = {}
-  const def = {}
-  for (const id of ids) {
-    if (cache[id]) {
-      res[id] = await cache[id]
-    } else {
-      def[id] = createDeferred()
-      cache[id] = def[id].promise
-      toFetch.push(id)
-    }
-  }
-
-  if (toFetch.length > 0) {
-    const data = await get(Endpoints.LOOKUP_BULK(toFetch))
-    for (const id of toFetch) {
-      const pronouns = data[id] ?? null
-      def[id].resolve(pronouns)
-      res[id] = pronouns
-    }
-  }
-
-  return res
-}
-
-module.exports = { fetchPronouns, fetchPronounsBulk }
+module.exports = React.memo(Settings);

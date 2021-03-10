@@ -25,36 +25,25 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-.userInfoSection-2acyCx:first-child {
-  display: grid;
-  grid-template-columns: 3fr 1fr;
-  grid-column-gap: 16px;
+const { React, Flux } = require('powercord/webpack')
+const { loadPronouns } = require('../store/action.js')
+const store = require('../store/store.js')
+
+const { formatPronouns } = require('../util.js')
+
+function Pronouns ({ userId, render, prefix, display, pronouns, format }) {
+  React.useEffect(() => void loadPronouns(userId), [ userId ])
+  const p = formatPronouns(pronouns ?? 'unspecified', format)
+
+  if (!p || !display) return null
+  return render ? render(p) : React.createElement(React.Fragment, null, prefix ?? null, p)
 }
 
-.userInfoSection-2acyCx .userInfoSectionHeader-CBvMDh {
-  grid-row: 1;
-}
-
-.userInfoSection-2acyCx .note-QfFU8y:last-child {
-  grid-column: 1 / 3;
-}
-
-.pronoundb-preview {
-  margin-bottom: 30px;
-}
-
-.pronoundb-preview .message-2qnXI6 {
-  background: none !important;
-}
-
-.pronoundb-preview .buttonContainer-DHceWr {
-  display: none;
-}
-
-.pronoundb-error {
-  padding: 20px;
-  margin-bottom: 20px;
-  color: var(--text-normal);
-  border-color: #f04747;
-  background-color: #f0474730;
-}
+module.exports = Flux.connectStores(
+  [ store, powercord.api.settings.store ],
+  ({ userId, region }) => ({
+    pronouns: store.getPronouns(userId),
+    format: powercord.api.settings.store.getSetting('pronoundb-powercord', 'format', 'lower'),
+    display: powercord.api.settings.store.getSetting('pronoundb-powercord', `display-${region}`, true)
+  })
+)(React.memo(Pronouns))

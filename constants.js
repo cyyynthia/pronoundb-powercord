@@ -34,8 +34,6 @@ const Endpoints = Object.freeze({
 
 const Pronouns = Object.freeze({
   unspecified: null,
-  avoid: 'Avoid pronouns, use my name',
-  any: 'Any pronouns',
   // -- Contributors: please keep the list sorted alphabetically.
   hh: [ 'he/him', 'He/Him' ],
   hi: [ 'he/it', 'He/It' ],
@@ -60,8 +58,13 @@ const Pronouns = Object.freeze({
   avoid: 'Avoid pronouns, use my name',
 })
 
+const FluxActions = Object.freeze({
+  PRONOUNS_LOADED: 'PRONOUNDB_PRONOUNS_LOADED'
+})
+
 module.exports = {
   WEBSITE,
   Endpoints,
-  Pronouns
+  Pronouns,
+  FluxActions
 }

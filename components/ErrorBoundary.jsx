@@ -25,36 +25,56 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-.userInfoSection-2acyCx:first-child {
-  display: grid;
-  grid-template-columns: 3fr 1fr;
-  grid-column-gap: 16px;
+const { resolve } = require('path')
+const { React, getModule } = require('powercord/webpack')
+const { Card } = require('powercord/components')
+const { DISCORD_INVITE, SpecialChannels: { SUPPORT_PLUGINS }, SETTINGS_FOLDER } = require('powercord/constants')
+const { gotoOrJoinServer } = require('powercord/util')
+
+const REPO = 'cyyynthia/pronoundb-powercord'
+
+class ErrorBoundary extends React.PureComponent {
+  constructor (props) {
+    super(props)
+
+    this.state = { crashed: false }
+  }
+
+  componentDidCatch (e) {
+    const basePath = resolve(SETTINGS_FOLDER, '..')
+
+    this.setState({
+      crashed: true,
+      error: (e.stack || '')
+        .split('\n')
+        .filter(l => !l.includes('discordapp.com/assets/') && !l.includes('discord.com/assets/'))
+        .join('\n')
+        .split(basePath)
+        .join('')
+    })
+  }
+
+  render () {
+    if (this.state.crashed) {
+      return (
+        <Card className='pronoundb-error'>
+          <p>
+            An error occurred while rendering the preview. Please let Cynthia know by sending her a message with the
+            error message on the <a href='#' onClick={this.joinPorkord}>Powercord server</a>, or by opening an issue
+            on the <a href={`https://github.com/${REPO}/issues`} target='_blank'>GitHub repository</a>.
+          </p>
+          <code>{this.state.error}</code>
+        </Card>
+      )
+    }
+
+    return this.props.children
+  }
+
+  joinPorkord () {
+    getModule([ 'popLayer' ], false).popLayer()
+    gotoOrJoinServer(DISCORD_INVITE, SUPPORT_PLUGINS)
+  }
 }
 
-.userInfoSection-2acyCx .userInfoSectionHeader-CBvMDh {
-  grid-row: 1;
-}
-
-.userInfoSection-2acyCx .note-QfFU8y:last-child {
-  grid-column: 1 / 3;
-}
-
-.pronoundb-preview {
-  margin-bottom: 30px;
-}
-
-.pronoundb-preview .message-2qnXI6 {
-  background: none !important;
-}
-
-.pronoundb-preview .buttonContainer-DHceWr {
-  display: none;
-}
-
-.pronoundb-error {
-  padding: 20px;
-  margin-bottom: 20px;
-  color: var(--text-normal);
-  border-color: #f04747;
-  background-color: #f0474730;
-}
+module.exports = ErrorBoundary

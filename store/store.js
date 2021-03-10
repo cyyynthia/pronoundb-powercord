@@ -25,36 +25,34 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-.userInfoSection-2acyCx:first-child {
-  display: grid;
-  grid-template-columns: 3fr 1fr;
-  grid-column-gap: 16px;
+const { Flux, FluxDispatcher } = require('powercord/webpack')
+const { FluxActions } = require('../constants.js')
+
+let pronouns = {}
+let timestamps = {}
+
+class PronounsStore extends Flux.Store {
+  getStore () {
+    return {
+      pronouns,
+      timestamps
+    }
+  }
+
+  getPronouns (id) {
+    return pronouns[id] ?? null
+  }
+
+  shouldFetchPronouns (id) {
+    return !(id in pronouns) || timestamps[id] < Date.now()
+  }
 }
 
-.userInfoSection-2acyCx .userInfoSectionHeader-CBvMDh {
-  grid-row: 1;
-}
+module.exports = new PronounsStore(FluxDispatcher, {
+  [FluxActions.PRONOUNS_LOADED]: ({ pronouns: pronounsList }) => {
+    Object.assign(pronouns, pronounsList)
 
-.userInfoSection-2acyCx .note-QfFU8y:last-child {
-  grid-column: 1 / 3;
-}
-
-.pronoundb-preview {
-  margin-bottom: 30px;
-}
-
-.pronoundb-preview .message-2qnXI6 {
-  background: none !important;
-}
-
-.pronoundb-preview .buttonContainer-DHceWr {
-  display: none;
-}
-
-.pronoundb-error {
-  padding: 20px;
-  margin-bottom: 20px;
-  color: var(--text-normal);
-  border-color: #f04747;
-  background-color: #f0474730;
-}
+    const expiry = Date.now() + (30 * 60e3)
+    Object.keys(pronounsList).forEach((id) => (timestamps[id] = expiry))
+  }
+})
