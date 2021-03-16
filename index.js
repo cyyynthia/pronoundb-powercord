@@ -107,7 +107,7 @@ class PronounDB extends Plugin {
 
       const section = res.props.children[2].props.children
       section.push(
-        React.crateElement('span', null, React.createElement(Pronouns, { userId: this.props.user.id, region: 'autocomplete', prefix: ' • ' }))
+        React.createElement('span', null, React.createElement(Pronouns, { userId: this.props.user.id, region: 'autocomplete', prefix: ' • ' }))
       )
 
       return res

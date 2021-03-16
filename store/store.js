@@ -44,7 +44,7 @@ class PronounsStore extends Flux.Store {
   }
 
   shouldFetchPronouns (id) {
-    return !(id in pronouns) || timestamps[id] < Date.now()
+    return !(id in pronouns) // || timestamps[id] < Date.now()
   }
 }
 
