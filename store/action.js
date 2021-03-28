@@ -38,7 +38,7 @@ async function doLoadPronouns (ids) {
 
   FluxDispatcher.dirtyDispatch({
     type: FluxActions.PRONOUNS_LOADED,
-    pronouns: Object.assign(Object.fromEntries(Object.keys(ids).map((id) => [ id, null ])), pronouns)
+    pronouns: Object.assign(Object.fromEntries(Object.values(ids).map((id) => [ id, null ])), pronouns)
   })
 }
 
