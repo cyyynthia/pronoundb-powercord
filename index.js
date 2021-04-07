@@ -112,6 +112,20 @@ class PronounDB extends Plugin {
 
       return res
     })
+
+    // fix for messages in search and inbox
+    for (const component of [ 'ChannelMessage', 'InboxMessage' ]) {
+      const mdl = await getModule(m => m.type && m.type.displayName === component);
+      if (mdl) {
+        inject(`pronoundb-fix-${component}`, mdl, 'type', (_, res) => {
+          if (res.props.childrenHeader) {
+            res.props.childrenHeader.type.type = MessageHeader.default;
+          }
+          return res;
+        });
+        mdl.type.displayName = component;
+      }
+    }
   }
 
   pluginWillUnload () {
@@ -120,10 +134,16 @@ class PronounDB extends Plugin {
     uninject('pronoundb-popout-render')
     uninject('pronoundb-profile-render')
     uninject('pronoundb-autocomplete-render')
+    uninject('pronoundb-fix-ChannelMessage')
+    uninject('pronoundb-fix-InboxMessage')
   }
 
   async _getMessageHeader () {
-    return getModule([ 'MessageTimestamp' ])
+    const d = (m) => {
+      const def = m.__powercordOriginal_default ?? m.default
+      return typeof def === 'function' ? def : null
+    }
+    return getModule((m) => d(m)?.toString().includes('headerText'))
   }
 
   async _getUserPopOut () {
