@@ -36,12 +36,14 @@ function wrapInHooks (fn) {
     const ogUseEffect = owo.useEffect
     const ogUseLayoutEffect = owo.useLayoutEffect
     const ogUseRef = owo.useRef
+    const ogUseCallback = owo.useCallback
 
     owo.useMemo = (f) => f()
     owo.useState = (v) => [ v, () => void 0 ]
     owo.useEffect = () => null
     owo.useLayoutEffect = () => null
     owo.useRef = () => ({})
+    owo.useCallback = (c) => c
 
     const res = fn(...args)
 
@@ -50,6 +52,7 @@ function wrapInHooks (fn) {
     owo.useEffect = ogUseEffect
     owo.useLayoutEffect = ogUseLayoutEffect
     owo.useRef = ogUseRef
+    owo.useCallback = ogUseCallback
 
     return res
   }
