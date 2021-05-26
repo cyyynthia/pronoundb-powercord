@@ -143,7 +143,7 @@ class PronounDB extends Plugin {
       const def = m.__powercordOriginal_default ?? m.default
       return typeof def === 'function' ? def : null
     }
-    return getModule((m) => d(m)?.toString().includes('headerText'))
+    return getModule((m) => d(m)?.toString().includes('showTimestampOnHover'))
   }
 
   async _getUserPopOut () {
