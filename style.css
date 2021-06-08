@@ -25,17 +25,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-.userInfoSection-2acyCx:first-child {
+.userInfoSection-q_35fn:first-child {
   display: grid;
   grid-template-columns: 3fr 1fr;
   grid-column-gap: 16px;
 }
 
-.userInfoSection-2acyCx .userInfoSectionHeader-CBvMDh {
+.userInfoSection-q_35fn .userInfoSectionHeader-3TYk6R {
   grid-row: 1;
 }
 
-.userInfoSection-2acyCx .note-QfFU8y:last-child {
+.userInfoSection-q_35fn .note-367eZJ:last-child {
   grid-column: 1 / 3;
 }
 

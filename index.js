@@ -28,9 +28,11 @@
 const { Plugin } = require('powercord/entities')
 const { inject, uninject } = require('powercord/injector')
 const { React, getModule, getModuleByDisplayName } = require('powercord/webpack')
+const { Menu } = require('powercord/components')
 const { findInReactTree } = require('powercord/util')
 const { wrapInHooks } = require('./util.js')
 
+const Store = require('./store/store.js')
 const Pronouns = require('./components/Pronouns.js')
 const Settings = require('./components/Settings.jsx')
 
@@ -44,9 +46,12 @@ class PronounDB extends Plugin {
     })
 
     const _this = this;
+    const GuildChannelUserContextMenu = await getModule((m) => m.default?.displayName == 'GuildChannelUserContextMenu')
+    const DMUserContextMenu = await getModule((m) => m.default?.displayName == 'DMUserContextMenu')
+    const UserInfoBase = await getModule((m) => m.default?.displayName == 'UserInfoBase')
     const MessageHeader = await this._getMessageHeader()
     const UserPopOut = await this._getUserPopOut()
-    const UserProfileInfo = await this._getUserProfileInfo()
+    // const UserProfileInfo = await this._getUserProfileInfo()
     const Autocomplete = await this._getAutocomplete()
 
     inject('pronoundb-messages-header', MessageHeader, 'default', function ([ props ], res) {
@@ -76,7 +81,7 @@ class PronounDB extends Plugin {
           render: (p) => React.createElement(
             React.Fragment,
             null,
-            React.createElement('div', { className: 'bodyTitle-Y0qMQz marginBottom8-AtZOdT size12-3R0845' }, 'Pronouns'),
+            React.createElement('div', { className: 'bodyTitle-3FWCs2' }, 'Pronouns'),
             React.createElement('div', { className: 'marginBottom8-AtZOdT size14-e6ZScH' }, p)
           )
         })
@@ -85,22 +90,22 @@ class PronounDB extends Plugin {
       return res
     })
 
-    inject('pronoundb-profile-render', UserProfileInfo.prototype, 'render', function (_, res) {
+    inject('pronoundb-profile-render', UserInfoBase, 'default', function ([ props ], res) {
       res.props.children[0].props.children.push(
         React.createElement(Pronouns, {
-          userId: this.props.user.id,
+          userId: props.user.id,
           region: 'profile',
           render: (p) => React.createElement(
             React.Fragment,
             null,
-            React.createElement('div', { className: 'userInfoSectionHeader-CBvMDh' }, 'Pronouns'),
+            React.createElement('div', { className: 'userInfoSectionHeader-3TYk6R' }, 'Pronouns'),
             React.createElement('div', { className: 'marginBottom8-AtZOdT size14-e6ZScH colorStandard-2KCXvj' }, p)
           )
         })
-      )
+      );
 
-      return res
-    })
+      return res;
+    });
 
     inject('pronoundb-autocomplete-render', Autocomplete.User.prototype, 'renderContent', function (_, res) {
       if (!_this.settings.get('display-autocomplete', true)) return res
@@ -112,6 +117,25 @@ class PronounDB extends Plugin {
 
       return res
     })
+
+    function ctxMenuInjection ([ { user: { id: userId } } ], res) {
+      const group = findInReactTree(res, (n) => n.children?.find?.((c) => c?.props?.id === 'note'))
+      if (!group) return res
+
+      const note = group.children.indexOf((n) => n?.props?.id === 'note')
+      if (!Store.getPronouns(userId)) {
+        group.children.splice(note, 0, React.createElement(Menu.MenuItem, { id: 'pronoundb', label: 'Add pronouns', action: _this._promptAddPronouns() }))
+      }
+
+      return res
+    }
+
+    // :eyes: inject('pronoundb-user-add-pronouns-guild', GuildChannelUserContextMenu, 'default', ctxMenuInjection)
+    // :eyes: inject('pronoundb-user-add-pronouns-dm', DMUserContextMenu, 'default', ctxMenuInjection)
+
+    UserInfoBase.default.displayName = 'UserInfoBase'
+    GuildChannelUserContextMenu.default.displayName = 'GuildChannelUserContextMenu'
+    DMUserContextMenu.default.displayName = 'DMUserContextMenu'
 
     // fix for messages in search and inbox
     for (const component of [ 'ChannelMessage', 'InboxMessage' ]) {
@@ -134,8 +158,14 @@ class PronounDB extends Plugin {
     uninject('pronoundb-popout-render')
     uninject('pronoundb-profile-render')
     uninject('pronoundb-autocomplete-render')
+    uninject('pronoundb-user-add-pronouns-guild')
+    uninject('pronoundb-user-add-pronouns-dm')
     uninject('pronoundb-fix-ChannelMessage')
     uninject('pronoundb-fix-InboxMessage')
+  }
+
+  _promptAddPronouns () {
+    // :eyes:
   }
 
   async _getMessageHeader () {
@@ -155,6 +185,25 @@ class PronounDB extends Plugin {
     const res = wrapInHooks(() => fnUserPopOut({ user: { isNonUserBot: () => void 0 } }).type)()
     userStore.getCurrentUser = ogGetCurrentUser
     return res
+  }
+
+  async _getUserInfoBase () {
+    const VeryVeryDecoratedUserProfile = await getModuleByDisplayName('UserProfile')
+    const VeryDecoratedUserProfileBody = VeryVeryDecoratedUserProfile.prototype.render().type
+    const DecoratedUserProfileBody = this._extractFromFlux(VeryDecoratedUserProfileBody).render().type
+    const UserProfile = DecoratedUserProfileBody.prototype.render.call({ props: { forwardedRef: null } }).type
+
+    const fakeThis = {
+      getMode: () => null,
+      renderHeader: () => null,
+      renderCustomStatusActivity: () => null,
+      renderTabBar: UserProfile.prototype.renderTabBar.bind({ props: {}, isCurrentUser: () => true }),
+      props: {}
+    }
+
+    return this._extractFromFlux(
+      UserProfile.prototype.render.call(fakeThis).props.children.props.children[1].props.children.type
+    )
   }
 
   async _getUserProfileInfo () {
