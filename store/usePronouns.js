@@ -26,37 +26,34 @@
  */
 
 const { get } = require('powercord/http')
-const { FluxDispatcher } = require('powercord/webpack')
-const { shouldFetchPronouns } = require('./store.js')
+const { React, FluxDispatcher } = require('powercord/webpack')
+const { getPronouns, shouldFetchPronouns } = require('./store.js')
 const { FluxActions, Endpoints } = require('../constants.js')
 
-async function doLoadPronouns (ids) {
-  const pronouns = await get(Endpoints.LOOKUP_BULK(ids))
-    .set('x-pronoundb-source', 'Powercord (v2.0.0)')
-    .then(r => r.body)
-    .catch(() => ({}))
+async function doLoadPronoun (id) {
+  const pronouns = await get(Endpoints.LOOKUP(id))
+      .set('x-pronoundb-source', 'Powercord (v2.0.0)')
+      .then((r) => r.body.pronouns || null)
+      .catch(() => null)
 
   FluxDispatcher.dirtyDispatch({
     type: FluxActions.PRONOUNS_LOADED,
-    pronouns: Object.assign(Object.fromEntries(Object.values(ids).map((id) => [ id, null ])), pronouns)
+    pronouns: { [id]: pronouns }
   })
+
+  return pronouns;
 }
 
-let timer = null
-let buffer = []
-
-module.exports = {
-  loadPronouns: (id) => {
-    if (!shouldFetchPronouns(id) || buffer.includes(id)) return
-
-    if (!timer) {
-      timer = setTimeout(() => {
-        doLoadPronouns(buffer)
-        buffer = []
-        timer = null
-      }, 50)
+module.exports = function usePronouns (id) {
+  const [ pronouns, setPronouns ] = React.useState(null)
+  React.useEffect(() => {
+    if (!shouldFetchPronouns(id)) {
+      setPronouns(getPronouns(id) ?? 'unspecified')
+      return
     }
 
-    buffer.push(id)
-  }
+    doLoadPronoun(id).then((p) => setPronouns(p ?? 'unspecified'))
+  }, [ id ])
+
+  return pronouns
 }

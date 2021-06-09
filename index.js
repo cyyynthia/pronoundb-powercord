@@ -28,13 +28,19 @@
 const { Plugin } = require('powercord/entities')
 const { inject, uninject } = require('powercord/injector')
 const { React, getModule, getModuleByDisplayName } = require('powercord/webpack')
-const { Menu } = require('powercord/components')
+const { open: openModal, close: closeModal } = require('powercord/modal')
+const { Confirm } = require('powercord/components/modal')
+const { Menu, FormTitle, AsyncComponent } = require('powercord/components')
 const { findInReactTree } = require('powercord/util')
-const { wrapInHooks } = require('./util.js')
+const { wrapInHooks, formatPronouns } = require('./util.js')
+const { Pronouns: AvailablePronouns } = require('./constants.js')
 
-const Store = require('./store/store.js')
+const usePronouns = require('./store/usePronouns.js')
 const Pronouns = require('./components/Pronouns.js')
 const Settings = require('./components/Settings.jsx')
+
+const SelectInput = AsyncComponent.from(getModuleByDisplayName('SelectTempWrapper'))
+const PronounsKeys = Object.keys(AvailablePronouns).filter((p) => p !== 'ask' && p !== 'unspecified')
 
 class PronounDB extends Plugin {
   async startPlugin () {
@@ -118,20 +124,21 @@ class PronounDB extends Plugin {
       return res
     })
 
-    function ctxMenuInjection ([ { user: { id: userId } } ], res) {
+    function ctxMenuInjection ([ { user } ], res) {
+      const pronouns = usePronouns(user.id)
       const group = findInReactTree(res, (n) => n.children?.find?.((c) => c?.props?.id === 'note'))
       if (!group) return res
 
       const note = group.children.indexOf((n) => n?.props?.id === 'note')
-      if (!Store.getPronouns(userId)) {
-        group.children.splice(note, 0, React.createElement(Menu.MenuItem, { id: 'pronoundb', label: 'Add pronouns', action: _this._promptAddPronouns() }))
+      if (pronouns === 'unspecified') {
+        group.children.splice(note, 0, React.createElement(Menu.MenuItem, { id: 'pronoundb', label: 'Add Pronouns', action: () => _this._promptAddPronouns(user) }))
       }
 
       return res
     }
 
-    // :eyes: inject('pronoundb-user-add-pronouns-guild', GuildChannelUserContextMenu, 'default', ctxMenuInjection)
-    // :eyes: inject('pronoundb-user-add-pronouns-dm', DMUserContextMenu, 'default', ctxMenuInjection)
+    inject('pronoundb-user-add-pronouns-guild', GuildChannelUserContextMenu, 'default', ctxMenuInjection)
+    inject('pronoundb-user-add-pronouns-dm', DMUserContextMenu, 'default', ctxMenuInjection)
 
     UserInfoBase.default.displayName = 'UserInfoBase'
     GuildChannelUserContextMenu.default.displayName = 'GuildChannelUserContextMenu'
@@ -164,8 +171,43 @@ class PronounDB extends Plugin {
     uninject('pronoundb-fix-InboxMessage')
   }
 
-  _promptAddPronouns () {
-    // :eyes:
+  _promptAddPronouns (user) {
+    openModal(() => {
+      const [ pronouns, setPronouns ] = React.useState(this.settings.get(`pronouns-${user.id}`, 'unspecified'))
+      const format = this.settings.get('format', 'lower')
+
+      return React.createElement(
+        Confirm,
+        {
+          header: `Set pronouns for ${user.tag}`,
+          confirmText: 'Apply',
+          cancelText: 'Cancel',
+          className: 'pronoundb-modal',
+          confirmButtonColor: 'colorBrand-3pXr91',
+          onConfirm: () => this.settings.set(`pronouns-${user.id}`, pronouns),
+          onCancel: closeModal
+        },
+        React.createElement(
+          'div',
+          { className: 'powercord-text' },
+          React.createElement(FormTitle, null, 'Pronouns'),
+          React.createElement(SelectInput, {
+            searchable: false,
+            onChange: (e) => setPronouns(e.value),
+            value: pronouns,
+            options: [
+              { label: 'Unset', value: 'unspecified' },
+              ...PronounsKeys.map((k) => ({ label: formatPronouns(k, format), value: k }))
+            ]
+          }),
+          React.createElement(
+            'p',
+            { style: { marginBottom: 0 } },
+            'If the person registers an account on PronounDB, the pronouns they set will override your local settings.'
+          )
+        )
+      )
+    });
   }
 
   async _getMessageHeader () {
@@ -185,25 +227,6 @@ class PronounDB extends Plugin {
     const res = wrapInHooks(() => fnUserPopOut({ user: { isNonUserBot: () => void 0 } }).type)()
     userStore.getCurrentUser = ogGetCurrentUser
     return res
-  }
-
-  async _getUserInfoBase () {
-    const VeryVeryDecoratedUserProfile = await getModuleByDisplayName('UserProfile')
-    const VeryDecoratedUserProfileBody = VeryVeryDecoratedUserProfile.prototype.render().type
-    const DecoratedUserProfileBody = this._extractFromFlux(VeryDecoratedUserProfileBody).render().type
-    const UserProfile = DecoratedUserProfileBody.prototype.render.call({ props: { forwardedRef: null } }).type
-
-    const fakeThis = {
-      getMode: () => null,
-      renderHeader: () => null,
-      renderCustomStatusActivity: () => null,
-      renderTabBar: UserProfile.prototype.renderTabBar.bind({ props: {}, isCurrentUser: () => true }),
-      props: {}
-    }
-
-    return this._extractFromFlux(
-      UserProfile.prototype.render.call(fakeThis).props.children.props.children[1].props.children.type
-    )
   }
 
   async _getUserProfileInfo () {

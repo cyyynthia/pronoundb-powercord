@@ -31,9 +31,10 @@ const store = require('../store/store.js')
 
 const { formatPronouns } = require('../util.js')
 
-function Pronouns ({ userId, render, prefix, display, pronouns, format }) {
+function Pronouns ({ userId, render, prefix, display, pronouns, manualPronouns, format }) {
   React.useEffect(() => void loadPronouns(userId), [ userId ])
-  const p = formatPronouns(pronouns ?? 'unspecified', format)
+  const effectivePronouns = pronouns === null ? manualPronouns : pronouns
+  const p = formatPronouns(effectivePronouns ?? 'unspecified', format)
 
   if (!p || !display) return null
   return render ? render(p) : React.createElement(React.Fragment, null, prefix ?? null, p)
@@ -43,6 +44,7 @@ module.exports = Flux.connectStores(
   [ store, powercord.api.settings.store ],
   ({ userId, region }) => ({
     pronouns: store.getPronouns(userId),
+    manualPronouns: powercord.api.settings.store.getSetting('pronoundb-powercord', `pronouns-${userId}`, null),
     format: powercord.api.settings.store.getSetting('pronoundb-powercord', 'format', 'lower'),
     display: powercord.api.settings.store.getSetting('pronoundb-powercord', `display-${region}`, true)
   })

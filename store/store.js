@@ -40,7 +40,7 @@ class PronounsStore extends Flux.Store {
   }
 
   getPronouns (id) {
-    return pronouns[id] ?? null
+    return pronouns[id]
   }
 
   shouldFetchPronouns (id) {

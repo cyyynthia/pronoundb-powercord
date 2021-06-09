@@ -58,3 +58,14 @@
   border-color: #f04747;
   background-color: #f0474730;
 }
+
+.pronoundb-modal .content-1LAB8Z {
+  overflow: visible !important;
+  margin-right: 8px;
+  z-index: 500;
+}
+
+.pronoundb-modal .footer-2gL1pp {
+  display: flex;
+  align-items: center;
+}
