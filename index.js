@@ -173,6 +173,7 @@ class PronounDB extends Plugin {
     uninject('pronoundb-user-add-pronouns-dm')
     uninject('pronoundb-pride-avatar')
     uninject('pronoundb-pride-avatar-voice')
+    uninject('pronoundb-pride-avatar-message')
 
     uninject('pronoundb-fix-ChannelMessage')
     uninject('pronoundb-fix-InboxMessage')
@@ -180,6 +181,7 @@ class PronounDB extends Plugin {
 
   async _injectPride () {
     const Avatar = await getModule([ 'AnimatedAvatar' ]);
+    const MessageHeader = await this._getMessageHeader()
     const VoiceUser = await getModuleByDisplayName('VoiceUser');
 
     inject('pronoundb-pride-avatar', Avatar, 'default', function (_, res) {
@@ -188,13 +190,25 @@ class PronounDB extends Plugin {
       const idx = svg.children.indexOf(fe)
       svg.children[idx] = React.createElement(PrideRing, null, fe)
       return res;
-    });
+    })
 
     inject('pronoundb-pride-avatar-voice', VoiceUser.prototype, 'renderAvatar', function (_, res) {
       return (
         React.createElement(Avatar.default, { size: 'SIZE_24', src: res.props.style.backgroundImage.slice(4, -1), className: res.props.className })
       )
-    });
+    })
+
+    inject('pronoundb-pride-avatar-message', MessageHeader, 'default', function (_, res) {
+      const ogChild = res.props.children[0].props.children
+      res.props.children[0].props.children = (p) => {
+        const res = ogChild(p)
+        return res.type === 'img'
+          ? React.createElement(Avatar.default, { ...res.props, size: 'SIZE_40' })
+          : res
+      }
+
+      return res
+    })
 
     Avatar.default.Sizes = Avatar.Sizes;
   }
