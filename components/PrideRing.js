@@ -34,7 +34,7 @@ function PrideRing ({ children: fe }) {
   const [ pride, setPride ] = React.useState(false) // todo: api struct
 
   React.useEffect(() => {
-    const res = findInTree(ref.current.__reactInternalInstance$, (n) => n.user || n.message, { walkable: [ 'return', 'memoizedProps' ]})
+    const res = findInTree(ref.current.__reactInternalInstance$, (n) => n.user || n.message, { walkable: [ 'memoizedProps', 'return' ]})
     if (res) setUserId(res.user?.id ?? res.message.author.id)
   }, [ ref.current ])
 

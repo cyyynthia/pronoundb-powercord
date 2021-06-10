@@ -104,7 +104,7 @@ class PronounDB extends Plugin {
           render: (p) => React.createElement(
             React.Fragment,
             null,
-            React.createElement('div', { className: 'userInfoSectionHeader-3TYk6R' }, 'Pronouns'),
+            React.createElement('div', { className: 'userInfoSectionHeader-3TYk6R base-1x0h_U size12-3cLvbJ uppercase-3VWUQ9' }, 'Pronouns'),
             React.createElement('div', { className: 'marginBottom8-AtZOdT size14-e6ZScH colorStandard-2KCXvj' }, p)
           )
         })
@@ -172,6 +172,7 @@ class PronounDB extends Plugin {
     uninject('pronoundb-user-add-pronouns-guild')
     uninject('pronoundb-user-add-pronouns-dm')
     uninject('pronoundb-pride-avatar')
+    uninject('pronoundb-pride-avatar-voice')
 
     uninject('pronoundb-fix-ChannelMessage')
     uninject('pronoundb-fix-InboxMessage')
@@ -179,12 +180,20 @@ class PronounDB extends Plugin {
 
   async _injectPride () {
     const Avatar = await getModule([ 'AnimatedAvatar' ]);
+    const VoiceUser = await getModuleByDisplayName('VoiceUser');
+
     inject('pronoundb-pride-avatar', Avatar, 'default', function (_, res) {
       const svg = findInReactTree(res, (n) => n.viewBox)
       const fe = findInReactTree(svg, (n) => n.type === 'foreignObject')
       const idx = svg.children.indexOf(fe)
       svg.children[idx] = React.createElement(PrideRing, null, fe)
       return res;
+    });
+
+    inject('pronoundb-pride-avatar-voice', VoiceUser.prototype, 'renderAvatar', function (_, res) {
+      return (
+        React.createElement(Avatar.default, { size: 'SIZE_24', src: res.props.style.backgroundImage.slice(4, -1), className: res.props.className })
+      )
     });
 
     Avatar.default.Sizes = Avatar.Sizes;
