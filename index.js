@@ -37,6 +37,7 @@ const { Pronouns: AvailablePronouns } = require('./constants.js')
 
 const usePronouns = require('./store/usePronouns.js')
 const Pronouns = require('./components/Pronouns.js')
+const PrideRing = require('./components/PrideRing.js')
 const Settings = require('./components/Settings.jsx')
 
 const SelectInput = AsyncComponent.from(getModuleByDisplayName('SelectTempWrapper'))
@@ -57,8 +58,7 @@ class PronounDB extends Plugin {
     const UserInfoBase = await getModule((m) => m.default?.displayName == 'UserInfoBase')
     const MessageHeader = await this._getMessageHeader()
     const UserPopOut = await this._getUserPopOut()
-    // const UserProfileInfo = await this._getUserProfileInfo()
-    const Autocomplete = await this._getAutocomplete()
+    const Autocomplete = await getModuleByDisplayName('Autocomplete')
 
     inject('pronoundb-messages-header', MessageHeader, 'default', function ([ props ], res) {
       res.props.children[1].props.children.push(
@@ -144,6 +144,10 @@ class PronounDB extends Plugin {
     GuildChannelUserContextMenu.default.displayName = 'GuildChannelUserContextMenu'
     DMUserContextMenu.default.displayName = 'DMUserContextMenu'
 
+    if (this.settings.get('experiment-pride-flags')) {
+      this._injectPride()
+    }
+
     // fix for messages in search and inbox
     for (const component of [ 'ChannelMessage', 'InboxMessage' ]) {
       const mdl = await getModule(m => m.type && m.type.displayName === component);
@@ -167,8 +171,23 @@ class PronounDB extends Plugin {
     uninject('pronoundb-autocomplete-render')
     uninject('pronoundb-user-add-pronouns-guild')
     uninject('pronoundb-user-add-pronouns-dm')
+    uninject('pronoundb-pride-avatar')
+
     uninject('pronoundb-fix-ChannelMessage')
     uninject('pronoundb-fix-InboxMessage')
+  }
+
+  async _injectPride () {
+    const Avatar = await getModule([ 'AnimatedAvatar' ]);
+    inject('pronoundb-pride-avatar', Avatar, 'default', function (_, res) {
+      const svg = findInReactTree(res, (n) => n.viewBox)
+      const fe = findInReactTree(svg, (n) => n.type === 'foreignObject')
+      const idx = svg.children.indexOf(fe)
+      svg.children[idx] = React.createElement(PrideRing, null, fe)
+      return res;
+    });
+
+    Avatar.default.Sizes = Avatar.Sizes;
   }
 
   _promptAddPronouns (user) {
@@ -227,33 +246,6 @@ class PronounDB extends Plugin {
     const res = wrapInHooks(() => fnUserPopOut({ user: { isNonUserBot: () => void 0 } }).type)()
     userStore.getCurrentUser = ogGetCurrentUser
     return res
-  }
-
-  async _getUserProfileInfo () {
-    const VeryVeryDecoratedUserProfile = await getModuleByDisplayName('UserProfile')
-    const VeryDecoratedUserProfileBody = VeryVeryDecoratedUserProfile.prototype.render().type
-    const DecoratedUserProfileBody = this._extractFromFlux(VeryDecoratedUserProfileBody).render().type
-    const UserProfile = DecoratedUserProfileBody.prototype.render.call({ props: { forwardedRef: null } }).type
-
-    const fakeThis = {
-      getMode: () => null,
-      renderHeader: () => null,
-      renderCustomStatusActivity: () => null,
-      renderTabBar: UserProfile.prototype.renderTabBar.bind({ props: {}, isCurrentUser: () => true }),
-      props: {}
-    }
-
-    return this._extractFromFlux(
-      UserProfile.prototype.render.call(fakeThis).props.children.props.children[1].props.children.type
-    )
-  }
-
-  async _getAutocomplete () {
-    return getModuleByDisplayName('Autocomplete')
-  }
-
-  _extractFromFlux (FluxContainer) {
-    return FluxContainer.prototype.render.call({ memoizedGetStateFromStores: () => null }).type
   }
 }
 
