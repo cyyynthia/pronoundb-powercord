@@ -37,7 +37,10 @@ class ErrorBoundary extends React.PureComponent {
   constructor (props) {
     super(props)
 
-    this.state = { crashed: false }
+    this.state = {
+      it: Math.random() > .5,
+      crashed: false
+    }
   }
 
   componentDidCatch (e) {
@@ -56,10 +59,11 @@ class ErrorBoundary extends React.PureComponent {
 
   render () {
     if (this.state.crashed) {
+      const it = this.state.it ? 'it' : 'her'
       return (
         <Card className='pronoundb-error'>
           <p>
-            An error occurred while rendering the preview. Please let Cynthia know by sending her a message with the
+            An error occurred while rendering the preview. Please let Cynthia know by sending {it} a message with the
             error message on the <a href='#' onClick={this.joinPorkord}>Powercord server</a>, or by opening an issue
             on the <a href={`https://github.com/${REPO}/issues`} target='_blank'>GitHub repository</a>.
           </p>

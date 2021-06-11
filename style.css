@@ -63,6 +63,20 @@
   height: 18px;
 }
 
+.pronoundb-example {
+  max-width: none;
+}
+
+.pronoundb-example ul {
+  list-style-type: disc;
+  padding-left: 15px;
+  margin-top: 2px;
+}
+
+.pronoundb-example li {
+  margin-left: 2px;
+}
+
 .pronoundb-preview {
   margin-bottom: 30px;
 }
@@ -87,6 +101,10 @@
   overflow: visible !important;
   margin-right: 8px;
   z-index: 500;
+}
+
+.pronoundb-error p {
+  margin-top: 0;
 }
 
 .pronoundb-modal .footer-2gL1pp {

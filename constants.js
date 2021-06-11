@@ -58,6 +58,31 @@ const Pronouns = Object.freeze({
   avoid: 'Avoid pronouns, use my name',
 })
 
+const HE_EXAMPLE = 'He left his plushie there'
+const IT_EXAMPLE = 'It left its plushie there'
+const SHE_EXAMPLE = 'She left her plushie there'
+const THEY_EXAMPLE = 'They left their plushie there'
+
+const PronounsExample = Object.freeze({
+  hh: [ HE_EXAMPLE ],
+  hi: [ HE_EXAMPLE, IT_EXAMPLE ],
+  hs: [ HE_EXAMPLE, SHE_EXAMPLE ],
+  ht: [ HE_EXAMPLE, THEY_EXAMPLE ],
+  ih: [ IT_EXAMPLE, HE_EXAMPLE ],
+  ii: [ IT_EXAMPLE ],
+  is: [ IT_EXAMPLE, SHE_EXAMPLE ],
+  it: [ IT_EXAMPLE, THEY_EXAMPLE ],
+  shh: [ SHE_EXAMPLE, HE_EXAMPLE ],
+  sh: [ SHE_EXAMPLE ],
+  si: [ SHE_EXAMPLE, IT_EXAMPLE ],
+  st: [ SHE_EXAMPLE, THEY_EXAMPLE ],
+  th: [ THEY_EXAMPLE, HE_EXAMPLE ],
+  ti: [ THEY_EXAMPLE, IT_EXAMPLE ],
+  ts: [ THEY_EXAMPLE, SHE_EXAMPLE ],
+  tt: [ THEY_EXAMPLE ],
+  any: [ HE_EXAMPLE, IT_EXAMPLE, SHE_EXAMPLE, THEY_EXAMPLE ]
+})
+
 const FluxActions = Object.freeze({
   PRONOUNS_LOADED: 'PRONOUNDB_PRONOUNS_LOADED'
 })
@@ -66,5 +91,6 @@ module.exports = {
   WEBSITE,
   Endpoints,
   Pronouns,
+  PronounsExample,
   FluxActions
 }

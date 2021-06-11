@@ -25,11 +25,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-const { React, Flux } = require('powercord/webpack')
+const { React, Flux, getModule } = require('powercord/webpack')
 const { loadPronouns } = require('../store/action.js')
 const store = require('../store/store.js')
 
 const { formatPronouns } = require('../util.js')
+const { PronounsExample } = require('../constants.js')
+const { default: Tooltip } = getModule([ 'TooltipContainer' ], false)
 
 function Pronouns ({ userId, render, prefix, display, pronouns, manualPronouns, format }) {
   React.useEffect(() => void loadPronouns(userId), [ userId ])
@@ -37,7 +39,28 @@ function Pronouns ({ userId, render, prefix, display, pronouns, manualPronouns, 
   const p = formatPronouns(effectivePronouns ?? 'unspecified', format)
 
   if (!p || !display) return null
-  return render ? render(p) : React.createElement(React.Fragment, null, prefix ?? null, p)
+  return render
+    ? render(p)
+    : React.createElement(
+        React.Fragment,
+        null,
+        prefix ?? null,
+        effectivePronouns in PronounsExample
+          ? React.createElement(Tooltip, {
+            delay: 1500,
+            tooltipClassName: 'pronoundb-example',
+            text: React.createElement(
+              React.Fragment,
+              null,
+              React.createElement('div', null, 'Example usage:'),
+              PronounsExample[effectivePronouns].length > 1
+                ? React.createElement('ul', null, PronounsExample[effectivePronouns].map((e) => React.createElement('li', null, e)))
+                : PronounsExample[effectivePronouns][0]
+            ),
+            children: (props) => React.createElement('span', props, p)
+          })
+          : React.createElement('span', null, p)
+      )
 }
 
 module.exports = Flux.connectStores(
