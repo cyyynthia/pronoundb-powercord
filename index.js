@@ -34,6 +34,7 @@ const { Menu, FormTitle, AsyncComponent } = require('powercord/components')
 const { findInReactTree } = require('powercord/util')
 const { wrapInHooks, formatPronouns } = require('./util.js')
 const { Pronouns: AvailablePronouns } = require('./constants.js')
+const prideify = require('./prideify.js');
 
 const usePronouns = require('./store/usePronouns.js')
 const Pronouns = require('./components/Pronouns.js')
@@ -42,6 +43,7 @@ const Settings = require('./components/Settings.jsx')
 
 const SelectInput = AsyncComponent.from(getModuleByDisplayName('SelectTempWrapper'))
 const PronounsKeys = Object.keys(AvailablePronouns).filter((p) => p !== 'ask' && p !== 'unspecified')
+
 
 class PronounDB extends Plugin {
   async startPlugin () {
@@ -174,21 +176,32 @@ class PronounDB extends Plugin {
     uninject('pronoundb-pride-avatar')
     uninject('pronoundb-pride-avatar-voice')
     uninject('pronoundb-pride-avatar-message')
+    uninject('pronoundb-pride-avatar-reply')
+    uninject('pronoundb-pride-notification')
 
     uninject('pronoundb-fix-ChannelMessage')
     uninject('pronoundb-fix-InboxMessage')
 
     const { GroupData: SearchGroupData } = getModule([ 'SearchPopoutComponent' ], false)
+    const sendNotificationMdl = getModule([ 'requestPermission', 'showNotification' ], false);
+
     if (SearchGroupData.FILTER_FROM.__$pdb_og_component) {
       SearchGroupData.FILTER_FROM.component = SearchGroupData.FILTER_FROM.__$pdb_og_component
+    }
+
+    if (sendNotificationMdl.__$pdb_og_showNotification) {
+      sendNotificationMdl.showNotification = sendNotificationMdl.__$pdb_og_showNotification
     }
   }
 
   async _injectPride () {
     const Avatar = await getModule([ 'AnimatedAvatar' ]);
     const MessageHeader = await this._getMessageHeader()
+    const RepliedMessage = await getModule((m) => m.default?.displayName === 'RepliedMessage')
     const VoiceUser = await getModuleByDisplayName('VoiceUser');
     const { GroupData: SearchGroupData } = await getModule([ 'SearchPopoutComponent' ])
+    const sendNotificationMdl = await getModule([ 'requestPermission', 'showNotification' ]);
+    const makeNotificationMdl = await getModule([ 'makeTextChatNotification' ]);
 
     inject('pronoundb-pride-avatar', Avatar, 'default', function ([ props ], res) {
       const svg = findInReactTree(res, (n) => n.viewBox)
@@ -221,6 +234,31 @@ class PronounDB extends Plugin {
       return res
     })
 
+    inject('pronoundb-pride-avatar-reply', RepliedMessage, 'default', function ([ props ], res) {
+      const userId = props.referencedMessage.message?.author.id
+      if (res.props.children[0].type === 'img') {
+        res.props.children[0] = React.createElement(Avatar.default, { ...res.props.children[0].props, size: 'SIZE_16', $pdbUser: userId })
+        return res
+      }
+
+      if (res.props.children[0].type === 'div') {
+        return res
+      }
+
+      const ogChild = res.props.children[0].props.children
+      res.props.children[0].props.children = (p) => {
+        const res = ogChild(p)
+        return res.type === 'img'
+          ? React.createElement(Avatar.default, { ...res.props, size: 'SIZE_16', $pdbUser: userId })
+          : res
+      }
+
+      return res
+    })
+
+    RepliedMessage.default.displayName = 'RepliedMessage'
+    Avatar.default.Sizes = Avatar.Sizes;
+
     const ogSearchFrom = SearchGroupData.FILTER_FROM.component
     SearchGroupData.FILTER_FROM.__$pdb_og_component = ogSearchFrom
     function renderResult (fn, searchId, filterType, result) {
@@ -237,7 +275,27 @@ class PronounDB extends Plugin {
       return res
     }
 
-    Avatar.default.Sizes = Avatar.Sizes;
+    inject('pronoundb-pride-notification', makeNotificationMdl, 'makeTextChatNotification', function ([ ,, user ], res) {
+      res.icon += ` ${user.id}`
+      return res
+    })
+
+    const ogSend = sendNotificationMdl.showNotification
+    sendNotificationMdl.__$pdb_og_showNotification = ogSend
+    async function showNotif (rawIcon, title, body, meta) {
+      let [ icon, userId ] = rawIcon.split(' ')
+      if (userId === '94762492923748352') {
+        icon = await prideify(icon)
+      }
+
+      return ogSend(icon, title, body, meta)
+    }
+
+    sendNotificationMdl.showNotification = (rawIcon, title, body, meta) => {
+      let res = null
+      showNotif(rawIcon, title, body, meta).then((n) => (res = n))
+      return { close: () => res?.close() }
+    }
   }
 
   _promptAddPronouns (user) {
