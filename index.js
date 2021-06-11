@@ -177,18 +177,24 @@ class PronounDB extends Plugin {
 
     uninject('pronoundb-fix-ChannelMessage')
     uninject('pronoundb-fix-InboxMessage')
+
+    const { GroupData: SearchGroupData } = getModule([ 'SearchPopoutComponent' ], false)
+    if (SearchGroupData.FILTER_FROM.__$pdb_og_component) {
+      SearchGroupData.FILTER_FROM.component = SearchGroupData.FILTER_FROM.__$pdb_og_component
+    }
   }
 
   async _injectPride () {
     const Avatar = await getModule([ 'AnimatedAvatar' ]);
     const MessageHeader = await this._getMessageHeader()
     const VoiceUser = await getModuleByDisplayName('VoiceUser');
+    const { GroupData: SearchGroupData } = await getModule([ 'SearchPopoutComponent' ])
 
-    inject('pronoundb-pride-avatar', Avatar, 'default', function (_, res) {
+    inject('pronoundb-pride-avatar', Avatar, 'default', function ([ props ], res) {
       const svg = findInReactTree(res, (n) => n.viewBox)
       const fe = findInReactTree(svg, (n) => n.type === 'foreignObject')
       const idx = svg.children.indexOf(fe)
-      svg.children[idx] = React.createElement(PrideRing, null, fe)
+      svg.children[idx] = React.createElement(PrideRing, { userId: props.$pdbUser }, fe)
       return res;
     })
 
@@ -199,6 +205,11 @@ class PronounDB extends Plugin {
     })
 
     inject('pronoundb-pride-avatar-message', MessageHeader, 'default', function (_, res) {
+      if (res.props.children[0].type === 'img') {
+        res.props.children[0] = React.createElement(Avatar.default, { ...res.props.children[0].props, size: 'SIZE_40' })
+        return res
+      }
+
       const ogChild = res.props.children[0].props.children
       res.props.children[0].props.children = (p) => {
         const res = ogChild(p)
@@ -209,6 +220,22 @@ class PronounDB extends Plugin {
 
       return res
     })
+
+    const ogSearchFrom = SearchGroupData.FILTER_FROM.component
+    SearchGroupData.FILTER_FROM.__$pdb_og_component = ogSearchFrom
+    function renderResult (fn, searchId, filterType, result) {
+      const res = fn(searchId, filterType, result)
+      res[0] = React.createElement(Avatar.default, { ...res[0].props, size: 'SIZE_16', $pdbUser: result.id })
+      return res
+    }
+
+    let boundRenderResult = null
+    SearchGroupData.FILTER_FROM.component = (props) => {
+      const res = ogSearchFrom(props)
+      if (!boundRenderResult) boundRenderResult = renderResult.bind(null, res.props.renderResult)
+      res.props.renderResult = boundRenderResult
+      return res
+    }
 
     Avatar.default.Sizes = Avatar.Sizes;
   }

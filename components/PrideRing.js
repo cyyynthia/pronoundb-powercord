@@ -28,9 +28,38 @@
 const { React } = require('powercord/webpack')
 const { findInTree } = require('powercord/util')
 
-function PrideRing ({ children: fe }) {
+// todo: split in other file, more flags, more variants
+const LesbianFlagPastel = [ '#a06083', '#d387b1', '#f4abd3', '#ffffff', '#e4accf', '#f4987c', '#c66b6b' ]
+
+function PrideFlag ({ width, height }) {
+  const id = React.useMemo(() => Math.random().toString(36).slice(2), [])
+  const strip = height / LesbianFlagPastel.length
+  const len1 = LesbianFlagPastel.length - 1
+
+  if (true) {
+    const delta = 100 / LesbianFlagPastel.length
+    const start = delta / 2
+    const stops = LesbianFlagPastel.map((color, i) => React.createElement('stop', { offset: `${(start + delta * i).toFixed(3)}%`, 'stop-color': color }))
+    return [
+      React.createElement('linearGradient', { id: id, gradientTransform: 'rotate(90)' }, stops),
+      React.createElement('rect', { x: 0, y: 0, width: width, height: height, fill: `url('#${id}')` })
+    ]
+  }
+
+  return LesbianFlagPastel.map(
+    (color, i) =>
+      React.createElement('rect', {
+        fill: color,
+        width: width,
+        height: (len1 === i ? 0 : 5) + strip,
+        y: strip * i
+      })
+  )
+}
+
+function PrideRing ({ children: fe, userId: providedUserId }) {
   const ref = React.useRef()
-  const [ userId, setUserId ] = React.useState(null)
+  const [ userId, setUserId ] = React.useState(providedUserId)
   const [ pride, setPride ] = React.useState(false) // todo: api struct
 
   React.useEffect(() => {
@@ -53,15 +82,7 @@ function PrideRing ({ children: fe }) {
       'g',
       { ...fe.props, ref: ref },
       // todo: more pride flags
-      pride && React.createElement(React.Fragment, null,
-        React.createElement('rect', { fill: '#a06083', width: fe.props.width, height: '15%', y: '0%' }),
-        React.createElement('rect', { fill: '#d387b1', width: fe.props.width, height: '15%', y: '14.3%' }),
-        React.createElement('rect', { fill: '#f4abd3', width: fe.props.width, height: '15%', y: '28.6%' }),
-        React.createElement('rect', { fill: '#ffffff', width: fe.props.width, height: '15%', y: '42.9%' }),
-        React.createElement('rect', { fill: '#e4accf', width: fe.props.width, height: '15%', y: '57.2%' }),
-        React.createElement('rect', { fill: '#f4987c', width: fe.props.width, height: '15%', y: '71.5%' }),
-        React.createElement('rect', { fill: '#c66b6b', width: fe.props.width, height: '14.2%', y: '85.8%' })
-      ),
+      pride && React.createElement(PrideFlag, fe.props),
       React.createElement(
         'foreignObject',
         { x: scale, y: scale, width: fe.props.width - scale * 2, height: fe.props.height - scale * 2, style: { borderRadius: '100%' } },
