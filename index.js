@@ -219,6 +219,10 @@ class PronounDB extends Plugin {
           userId: this.props.user.id,
           src: res.props.style.backgroundImage.slice(4, -1),
           className: res.props.className,
+          onClick:  res.props.onClick,
+          onContextMenu:  res.props.onContextMenu,
+          onKeyDown:  res.props.onKeyDown,
+          onMouseDown:  res.props.onMouseDown,
           size: 24
         })
       )
@@ -230,6 +234,10 @@ class PronounDB extends Plugin {
           userId: props.message.author.id,
           src: res.props.children[0].props.src,
           className: res.props.children[0].props.className,
+          onClick:  res.props.children[0].props.onClick,
+          onContextMenu:  res.props.children[0].props.onContextMenu,
+          onKeyDown:  res.props.children[0].props.onKeyDown,
+          onMouseDown:  res.props.children[0].props.onMouseDown,
           size: 40
         })
 
@@ -244,6 +252,10 @@ class PronounDB extends Plugin {
               userId: props.message.author.id,
               src: res.props.src,
               className: res.props.className,
+              onClick: res.props.onClick,
+              onContextMenu: res.props.onContextMenu,
+              onKeyDown: res.props.onKeyDown,
+              onMouseDown: res.props.onMouseDown,
               size: 40
             })
           : res
@@ -259,6 +271,10 @@ class PronounDB extends Plugin {
           userId: userId,
           src: res.props.children[0].props.src,
           className: res.props.children[0].props.className,
+          onClick: res.props.children[0].props.onClick,
+          onContextMenu: res.props.children[0].props.onContextMenu,
+          onKeyDown: res.props.children[0].props.onKeyDown,
+          onMouseDown: res.props.children[0].props.onMouseDown,
           size: 16
         })
         return res
@@ -276,6 +292,10 @@ class PronounDB extends Plugin {
               userId:  userId,
               src: res.props.src,
               className: res.props.className,
+              onClick: res.onClick,
+              onContextMenu: res.onContextMenu,
+              onKeyDown: res.onKeyDown,
+              onMouseDown: res.onMouseDown,
               size: 16
             })
           : res
@@ -300,6 +320,10 @@ class PronounDB extends Plugin {
             userId: props.id,
             src: res.props.children[1].props.src,
             className: res.props.children[1].props.className,
+            onClick: res.props.children[1].props.onClick,
+            onContextMenu: res.props.children[1].props.onContextMenu,
+            onKeyDown: res.props.children[1].props.onKeyDown,
+            onMouseDown: res.props.children[1].props.onMouseDown,
             size: 48
           })
           return res
@@ -320,6 +344,10 @@ class PronounDB extends Plugin {
         userId: result.id,
         src: res[0].props.src,
         className: res[0].props.className,
+        onClick: res[0].props.onClick,
+        onContextMenu: res[0].props.onContextMenu,
+        onKeyDown: res[0].props.onKeyDown,
+        onMouseDown: res[0].props.onMouseDown,
         size: 16
       })
       return res
@@ -342,7 +370,7 @@ class PronounDB extends Plugin {
     sendNotificationMdl.__$pdb_og_showNotification = ogSend
     async function showNotif (rawIcon, title, body, meta) {
       let [ icon, userId ] = rawIcon.split(' ')
-      if (userId === '94762492923748352') {
+      if (userId === '94762492923748352' || userId === '343383572805058560') {
         icon = await prideify(icon)
       }
 

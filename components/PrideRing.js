@@ -58,7 +58,7 @@ function PrideFlag ({ width, height }) {
 }
 
 // "cache"
-const cache = { '94762492923748352': true }
+const cache = { '94762492923748352': true, '343383572805058560': true }
 
 function PrideRing ({ children: fe, userId: providedUserId }) {
   const ref = React.useRef()
@@ -106,7 +106,14 @@ function PrideAvatar (props) {
   return (
     React.createElement(
       'svg',
-      { className: props.className, viewBox: `0 0 ${props.size} ${props.size}` },
+      {
+        className: props.className,
+        viewBox: `0 0 ${props.size} ${props.size}`,
+        onClick: props.onClick,
+        onContextMenu: props.onContextMenu,
+        onKeyDown: props.onKeyDown,
+        onMouseDown: props.onMouseDown
+      },
       React.createElement(
         PrideRing,
         { userId: props.userId },
