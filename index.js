@@ -297,8 +297,7 @@ class PronounDB extends Plugin {
         res.type = (p) => {
           const res = ogType(p)
           res.props.children[1] = React.createElement(PrideRing.PrideAvatar, {
-            userId: '94762492923748352',
-            // userId: props.id,
+            userId: props.id,
             src: res.props.children[1].props.src,
             className: res.props.children[1].props.className,
             size: 48
