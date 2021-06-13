@@ -47,7 +47,7 @@ function Pronouns ({ userId, render, prefix, display, pronouns, manualPronouns, 
         prefix ?? null,
         effectivePronouns in PronounsExample
           ? React.createElement(Tooltip, {
-            delay: 1500,
+            delay: 1e3,
             tooltipClassName: 'pronoundb-example',
             text: React.createElement(
               React.Fragment,

@@ -25,8 +25,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// todo: split in other file, more flags, more variants
-const LesbianFlagPastel = [ '#a06083', '#d387b1', '#f4abd3', '#ffffff', '#e4accf', '#f4987c', '#c66b6b' ]
+// todo: yes
+const FlagStrips = [ '#fde06d', '#fdca01', '#fff4b4', '#fff4b4', '#fff4b4', '#fdca01', '#fde06d' ]
 
 module.exports = function (avatar) {
   return new Promise((resolve) => {
@@ -37,28 +37,28 @@ module.exports = function (avatar) {
     img.src = avatar
     img.addEventListener('load', () => {
       const scale = img.width * prideScale
-      const strip = img.height / LesbianFlagPastel.length
+      const strip = img.height / FlagStrips.length
       const canvas = document.createElement('canvas')
       canvas.width = img.width
       canvas.height = img.height
 
       const ctx = canvas.getContext('2d')
       if (true) {
-        const delta = 1 / LesbianFlagPastel.length
+        const delta = 1 / FlagStrips.length
         const start = delta / 2
         const gradient = ctx.createLinearGradient(0, 0, 0, img.height)
-        gradient.addColorStop(0, LesbianFlagPastel[0])
-        gradient.addColorStop(1, LesbianFlagPastel[LesbianFlagPastel.length - 1])
+        gradient.addColorStop(0, FlagStrips[0])
+        gradient.addColorStop(1, FlagStrips[FlagStrips.length - 1])
 
-        for (let i = 0; i < LesbianFlagPastel.length; i++) {
-          gradient.addColorStop(start + delta * i, LesbianFlagPastel[i])
+        for (let i = 0; i < FlagStrips.length; i++) {
+          gradient.addColorStop(start + delta * i, FlagStrips[i])
         }
 
         ctx.fillStyle = gradient
         ctx.fillRect(0, 0, img.width, img.height)
       } else {
-        for (let i = 0; i < LesbianFlagPastel.length; i++) {
-          ctx.fillStyle = LesbianFlagPastel[i]
+        for (let i = 0; i < FlagStrips.length; i++) {
+          ctx.fillStyle = FlagStrips[i]
           ctx.fillRect(0, i * strip, img.width, strip + 5)
         }
       }

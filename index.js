@@ -177,6 +177,7 @@ class PronounDB extends Plugin {
     uninject('pronoundb-pride-avatar-voice')
     uninject('pronoundb-pride-avatar-message')
     uninject('pronoundb-pride-avatar-reply')
+    uninject('pronoundb-pride-direct-message')
     uninject('pronoundb-pride-notification')
 
     uninject('pronoundb-fix-ChannelMessage')
@@ -198,28 +199,40 @@ class PronounDB extends Plugin {
     const Avatar = await getModule([ 'AnimatedAvatar' ]);
     const MessageHeader = await this._getMessageHeader()
     const RepliedMessage = await getModule((m) => m.default?.displayName === 'RepliedMessage')
+    const DirectMessage = await getModuleByDisplayName('DirectMessage');
     const VoiceUser = await getModuleByDisplayName('VoiceUser');
     const { GroupData: SearchGroupData } = await getModule([ 'SearchPopoutComponent' ])
     const sendNotificationMdl = await getModule([ 'requestPermission', 'showNotification' ]);
     const makeNotificationMdl = await getModule([ 'makeTextChatNotification' ]);
 
-    inject('pronoundb-pride-avatar', Avatar, 'default', function ([ props ], res) {
+    inject('pronoundb-pride-avatar', Avatar, 'default', function (_, res) {
       const svg = findInReactTree(res, (n) => n.viewBox)
       const fe = findInReactTree(svg, (n) => n.type === 'foreignObject')
       const idx = svg.children.indexOf(fe)
-      svg.children[idx] = React.createElement(PrideRing, { userId: props.$pdbUser }, fe)
+      svg.children[idx] = React.createElement(PrideRing, null, fe)
       return res;
     })
 
     inject('pronoundb-pride-avatar-voice', VoiceUser.prototype, 'renderAvatar', function (_, res) {
       return (
-        React.createElement(Avatar.default, { size: 'SIZE_24', src: res.props.style.backgroundImage.slice(4, -1), className: res.props.className })
+        React.createElement(PrideRing.PrideAvatar, {
+          userId: this.props.user.id,
+          src: res.props.style.backgroundImage.slice(4, -1),
+          className: res.props.className,
+          size: 24
+        })
       )
     })
 
-    inject('pronoundb-pride-avatar-message', MessageHeader, 'default', function (_, res) {
+    inject('pronoundb-pride-avatar-message', MessageHeader, 'default', function ([ props ], res) {
       if (res.props.children[0].type === 'img') {
-        res.props.children[0] = React.createElement(Avatar.default, { ...res.props.children[0].props, size: 'SIZE_40' })
+        res.props.children[0] = React.createElement(PrideRing.PrideAvatar, {
+          userId: props.message.author.id,
+          src: res.props.children[0].props.src,
+          className: res.props.children[0].props.className,
+          size: 40
+        })
+
         return res
       }
 
@@ -227,7 +240,12 @@ class PronounDB extends Plugin {
       res.props.children[0].props.children = (p) => {
         const res = ogChild(p)
         return res.type === 'img'
-          ? React.createElement(Avatar.default, { ...res.props, size: 'SIZE_40' })
+          ? React.createElement(PrideRing.PrideAvatar, {
+              userId: props.message.author.id,
+              src: res.props.src,
+              className: res.props.className,
+              size: 40
+            })
           : res
       }
 
@@ -237,7 +255,12 @@ class PronounDB extends Plugin {
     inject('pronoundb-pride-avatar-reply', RepliedMessage, 'default', function ([ props ], res) {
       const userId = props.referencedMessage.message?.author.id
       if (res.props.children[0].type === 'img') {
-        res.props.children[0] = React.createElement(Avatar.default, { ...res.props.children[0].props, size: 'SIZE_16', $pdbUser: userId })
+        res.props.children[0] = React.createElement(PrideRing.PrideAvatar, {
+          userId: userId,
+          src: res.props.children[0].props.src,
+          className: res.props.children[0].props.className,
+          size: 16
+        })
         return res
       }
 
@@ -249,10 +272,41 @@ class PronounDB extends Plugin {
       res.props.children[0].props.children = (p) => {
         const res = ogChild(p)
         return res.type === 'img'
-          ? React.createElement(Avatar.default, { ...res.props, size: 'SIZE_16', $pdbUser: userId })
+          ? React.createElement(PrideRing.PrideAvatar, {
+              userId:  userId,
+              src: res.props.src,
+              className: res.props.className,
+              size: 16
+            })
           : res
       }
 
+      return res
+    })
+
+    inject('pronoundb-pride-direct-message', DirectMessage.prototype, 'render', function (_, res) {
+      if (this.props.channel.type !== 1) {
+        return res
+      }
+
+      const props = findInReactTree(res, (n) => typeof n.children === 'function')
+      const ogChildren = props.children
+      props.children = (p) => {
+        const res = ogChildren(p)
+        const ogType = res.type
+        res.type = (p) => {
+          const res = ogType(p)
+          res.props.children[1] = React.createElement(PrideRing.PrideAvatar, {
+            userId: '94762492923748352',
+            // userId: props.id,
+            src: res.props.children[1].props.src,
+            className: res.props.children[1].props.className,
+            size: 48
+          })
+          return res
+        }
+        return res
+      }
       return res
     })
 
@@ -263,7 +317,12 @@ class PronounDB extends Plugin {
     SearchGroupData.FILTER_FROM.__$pdb_og_component = ogSearchFrom
     function renderResult (fn, searchId, filterType, result) {
       const res = fn(searchId, filterType, result)
-      res[0] = React.createElement(Avatar.default, { ...res[0].props, size: 'SIZE_16', $pdbUser: result.id })
+      res[0] = React.createElement(PrideRing.PrideAvatar, {
+        userId: result.id,
+        src: res[0].props.src,
+        className: res[0].props.className,
+        size: 16
+      })
       return res
     }
 

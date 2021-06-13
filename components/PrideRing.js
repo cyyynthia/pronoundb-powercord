@@ -28,25 +28,25 @@
 const { React } = require('powercord/webpack')
 const { findInTree } = require('powercord/util')
 
-// todo: split in other file, more flags, more variants
-const LesbianFlagPastel = [ '#a06083', '#d387b1', '#f4abd3', '#ffffff', '#e4accf', '#f4987c', '#c66b6b' ]
+// todo: yes
+const FlagStrips = [ '#fde06d', '#fdca01', '#fff4b4', '#fff4b4', '#fff4b4', '#fdca01', '#fde06d' ]
 
 function PrideFlag ({ width, height }) {
   const id = React.useMemo(() => Math.random().toString(36).slice(2), [])
-  const strip = height / LesbianFlagPastel.length
-  const len1 = LesbianFlagPastel.length - 1
+  const strip = height / FlagStrips.length
+  const len1 = FlagStrips.length - 1
 
   if (true) {
-    const delta = 100 / LesbianFlagPastel.length
+    const delta = 100 / FlagStrips.length
     const start = delta / 2
-    const stops = LesbianFlagPastel.map((color, i) => React.createElement('stop', { offset: `${(start + delta * i).toFixed(3)}%`, 'stop-color': color }))
+    const stops = FlagStrips.map((color, i) => React.createElement('stop', { offset: `${(start + delta * i).toFixed(3)}%`, 'stop-color': color }))
     return [
       React.createElement('linearGradient', { id: id, gradientTransform: 'rotate(90)' }, stops),
       React.createElement('rect', { x: 0, y: 0, width: width, height: height, fill: `url('#${id}')` })
     ]
   }
 
-  return LesbianFlagPastel.map(
+  return FlagStrips.map(
     (color, i) =>
       React.createElement('rect', {
         fill: color,
@@ -57,18 +57,28 @@ function PrideFlag ({ width, height }) {
   )
 }
 
+// "cache"
+const cache = { '94762492923748352': true }
+
 function PrideRing ({ children: fe, userId: providedUserId }) {
   const ref = React.useRef()
   const [ userId, setUserId ] = React.useState(providedUserId)
-  const [ pride, setPride ] = React.useState(false) // todo: api struct
+  const [ pride, setPride ] = React.useState(userId && cache[userId]) // todo: api struct
 
   React.useEffect(() => {
-    const res = findInTree(ref.current.__reactInternalInstance$, (n) => n.user || n.message, { walkable: [ 'memoizedProps', 'return' ]})
-    if (res) setUserId(res.user?.id ?? res.message.author.id)
+    if (!userId) {
+      const res = findInTree(ref.current.__reactInternalInstance$, (n) => n.user || n.message || n.participant, { walkable: [ 'memoizedProps', 'return' ]})
+      if (res) setUserId(res.user?.id ?? res.message?.author.id ?? res.participant.id)
+    }
   }, [ ref.current ])
 
   React.useEffect(() => {
     if (!userId) return
+
+    if (userId in cache) {
+      setPride(cache[userId])
+      return
+    }
 
     // todo: api call and all
     if (userId === '94762492923748352') setPride(true)
@@ -80,7 +90,7 @@ function PrideRing ({ children: fe, userId: providedUserId }) {
   return (
     React.createElement(
       'g',
-      { ...fe.props, ref: ref },
+      { ...fe.props, ref: ref, style: { overflow: 'hidden' } },
       // todo: more pride flags
       pride && React.createElement(PrideFlag, fe.props),
       React.createElement(
@@ -92,4 +102,23 @@ function PrideRing ({ children: fe, userId: providedUserId }) {
   )
 }
 
+function PrideAvatar (props) {
+  return (
+    React.createElement(
+      'svg',
+      { className: props.className, viewBox: `0 0 ${props.size} ${props.size}` },
+      React.createElement(
+        PrideRing,
+        { userId: props.userId },
+        React.createElement(
+          'foreignObject',
+          { width: props.size, height: props.size },
+          React.createElement('img', { src: props.src, alt: '', style: { width: '100%', height: '100%' } })
+        )
+      )
+    )
+  )
+}
+
 module.exports = React.memo(PrideRing)
+module.exports.PrideAvatar = React.memo(PrideAvatar)
