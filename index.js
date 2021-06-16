@@ -27,11 +27,11 @@
 
 const { Plugin } = require('powercord/entities')
 const { inject, uninject } = require('powercord/injector')
-const { React, getModule, getModuleByDisplayName } = require('powercord/webpack')
+const { React, getModule, getModuleByDisplayName, FluxDispatcher, channels } = require('powercord/webpack')
 const { open: openModal, close: closeModal } = require('powercord/modal')
 const { Confirm } = require('powercord/components/modal')
 const { Menu, FormTitle, AsyncComponent } = require('powercord/components')
-const { findInReactTree } = require('powercord/util')
+const { findInReactTree, findInTree } = require('powercord/util')
 const { wrapInHooks, formatPronouns } = require('./util.js')
 const { Pronouns: AvailablePronouns } = require('./constants.js')
 const prideify = require('./prideify.js');
@@ -163,6 +163,8 @@ class PronounDB extends Plugin {
         mdl.type.displayName = component;
       }
     }
+
+    this._forceUpdate()
   }
 
   pluginWillUnload () {
@@ -193,6 +195,8 @@ class PronounDB extends Plugin {
     if (sendNotificationMdl.__$pdb_og_showNotification) {
       sendNotificationMdl.showNotification = sendNotificationMdl.__$pdb_og_showNotification
     }
+
+    this._forceUpdate()
   }
 
   async _injectPride () {
@@ -206,6 +210,8 @@ class PronounDB extends Plugin {
     const makeNotificationMdl = await getModule([ 'makeTextChatNotification' ]);
 
     inject('pronoundb-pride-avatar', Avatar, 'default', function (_, res) {
+      console.log('avatar render')
+
       const svg = findInReactTree(res, (n) => n.viewBox)
       const fe = findInReactTree(svg, (n) => n.type === 'foreignObject')
       const idx = svg.children.indexOf(fe)
@@ -214,30 +220,34 @@ class PronounDB extends Plugin {
     })
 
     inject('pronoundb-pride-avatar-voice', VoiceUser.prototype, 'renderAvatar', function (_, res) {
+      console.log('voice render')
+
       return (
         React.createElement(PrideRing.PrideAvatar, {
           userId: this.props.user.id,
           src: res.props.style.backgroundImage.slice(4, -1),
           className: res.props.className,
-          onClick:  res.props.onClick,
-          onContextMenu:  res.props.onContextMenu,
-          onKeyDown:  res.props.onKeyDown,
-          onMouseDown:  res.props.onMouseDown,
+          onClick: res.props.onClick,
+          onContextMenu: res.props.onContextMenu,
+          onKeyDown: res.props.onKeyDown,
+          onMouseDown: res.props.onMouseDown,
           size: 24
         })
       )
     })
 
     inject('pronoundb-pride-avatar-message', MessageHeader, 'default', function ([ props ], res) {
+      console.log('message render')
+
       if (res.props.children[0].type === 'img') {
         res.props.children[0] = React.createElement(PrideRing.PrideAvatar, {
           userId: props.message.author.id,
           src: res.props.children[0].props.src,
           className: res.props.children[0].props.className,
-          onClick:  res.props.children[0].props.onClick,
-          onContextMenu:  res.props.children[0].props.onContextMenu,
-          onKeyDown:  res.props.children[0].props.onKeyDown,
-          onMouseDown:  res.props.children[0].props.onMouseDown,
+          onClick: res.props.children[0].props.onClick,
+          onContextMenu: res.props.children[0].props.onContextMenu,
+          onKeyDown: res.props.children[0].props.onKeyDown,
+          onMouseDown: res.props.children[0].props.onMouseDown,
           size: 40
         })
 
@@ -265,6 +275,8 @@ class PronounDB extends Plugin {
     })
 
     inject('pronoundb-pride-avatar-reply', RepliedMessage, 'default', function ([ props ], res) {
+      console.log('reply render')
+
       const userId = props.referencedMessage.message?.author.id
       if (res.props.children[0].type === 'img') {
         res.props.children[0] = React.createElement(PrideRing.PrideAvatar, {
@@ -289,7 +301,7 @@ class PronounDB extends Plugin {
         const res = ogChild(p)
         return res.type === 'img'
           ? React.createElement(PrideRing.PrideAvatar, {
-              userId:  userId,
+              userId: userId,
               src: res.props.src,
               className: res.props.className,
               onClick: res.onClick,
@@ -305,6 +317,7 @@ class PronounDB extends Plugin {
     })
 
     inject('pronoundb-pride-direct-message', DirectMessage.prototype, 'render', function (_, res) {
+      console.log('direct message render')
       if (this.props.channel.type !== 1) {
         return res
       }
@@ -317,7 +330,7 @@ class PronounDB extends Plugin {
         res.type = (p) => {
           const res = ogType(p)
           res.props.children[1] = React.createElement(PrideRing.PrideAvatar, {
-            userId: props.id,
+            userId: this.props.channel.recipients[0],
             src: res.props.children[1].props.src,
             className: res.props.children[1].props.className,
             onClick: res.props.children[1].props.onClick,
@@ -382,6 +395,41 @@ class PronounDB extends Plugin {
       showNotif(rawIcon, title, body, meta).then((n) => (res = n))
       return { close: () => res?.close() }
     }
+  }
+
+  async _forceUpdate () {
+    const channel = channels.getChannelId()
+    for (const msg of document.querySelectorAll('[id^=chat-messages-]')) {
+      const id = msg.id.slice(14)
+      FluxDispatcher.dirtyDispatch({ type: 'MESSAGE_UPDATE', message: { id: id, channel_id: channel, author: {} } })
+    }
+
+    const statusMdl = await getModule([ 'getStatus' ])
+    const activitiesMdl = await getModule([ 'getActivities' ])
+    for (const user of document.querySelectorAll('.member-3-YXUe, [id^=private-channels-]')) {
+      const res = findInTree(user.__reactInternalInstance$, (n) => n.user || n.channel, { walkable: [ 'memoizedProps', 'return' ] })
+      if (!res || (!res.user && res.channel.type !== 1)) continue
+
+      const id = res.user?.id ?? res.channel.recipients[0]
+      const status = statusMdl.getStatus(id)
+      const activities = activitiesMdl.getActivities(id)
+      const tmpStatus = status === 'online' ? 'dnd' : 'online'
+      FluxDispatcher.dirtyDispatch({ type: 'PRESENCE_UPDATE', user: { id: id }, activities: activities, status: tmpStatus })
+      FluxDispatcher.dirtyDispatch({ type: 'PRESENCE_UPDATE', user: { id: id }, activities: activities, status: status })
+    }
+
+    for (const voice of document.querySelectorAll('.voiceUser-1K6Xox')) {
+      voice.click()
+    }
+
+    for (const guild of document.querySelectorAll('.listItem-GuPuDH')) {
+      const res = findInTree(guild, (n) => n.type?.displayName === 'DirectMessage', { walkable: [ 'return' ] })
+      if (!res) continue
+
+      res.stateNode.forceUpdate()
+    }
+
+    setTimeout(() => document.body.click(), 0)
   }
 
   _promptAddPronouns (user) {

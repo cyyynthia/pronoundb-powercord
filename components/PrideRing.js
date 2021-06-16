@@ -41,7 +41,13 @@ function PrideFlag ({ width, height }) {
     const start = delta / 2
     const stops = FlagStrips.map((color, i) => React.createElement('stop', { offset: `${(start + delta * i).toFixed(3)}%`, 'stop-color': color }))
     return [
-      React.createElement('linearGradient', { id: id, gradientTransform: 'rotate(90)' }, stops),
+      React.createElement(
+        'linearGradient',
+        { id: id, gradientTransform: 'rotate(90)' },
+        React.createElement('stop', { offset: '0%', 'stop-color': FlagStrips[0] }),
+        stops,
+        React.createElement('stop', { offset: '100%', 'stop-color': FlagStrips[FlagStrips.length - 1] })
+      ),
       React.createElement('rect', { x: 0, y: 0, width: width, height: height, fill: `url('#${id}')` })
     ]
   }
