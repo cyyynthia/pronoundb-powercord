@@ -147,7 +147,7 @@ class PronounDB extends Plugin {
     DMUserContextMenu.default.displayName = 'DMUserContextMenu'
 
     if (this.settings.get('experiment-pride-flags')) {
-      this._injectPride()
+      await this._injectPride()
     }
 
     // fix for messages in search and inbox
@@ -210,8 +210,6 @@ class PronounDB extends Plugin {
     const makeNotificationMdl = await getModule([ 'makeTextChatNotification' ]);
 
     inject('pronoundb-pride-avatar', Avatar, 'default', function (_, res) {
-      console.log('avatar render')
-
       const svg = findInReactTree(res, (n) => n.viewBox)
       const fe = findInReactTree(svg, (n) => n.type === 'foreignObject')
       const idx = svg.children.indexOf(fe)
@@ -220,8 +218,6 @@ class PronounDB extends Plugin {
     })
 
     inject('pronoundb-pride-avatar-voice', VoiceUser.prototype, 'renderAvatar', function (_, res) {
-      console.log('voice render')
-
       return (
         React.createElement(PrideRing.PrideAvatar, {
           userId: this.props.user.id,
@@ -237,8 +233,6 @@ class PronounDB extends Plugin {
     })
 
     inject('pronoundb-pride-avatar-message', MessageHeader, 'default', function ([ props ], res) {
-      console.log('message render')
-
       if (res.props.children[0].type === 'img') {
         res.props.children[0] = React.createElement(PrideRing.PrideAvatar, {
           userId: props.message.author.id,
@@ -275,8 +269,6 @@ class PronounDB extends Plugin {
     })
 
     inject('pronoundb-pride-avatar-reply', RepliedMessage, 'default', function ([ props ], res) {
-      console.log('reply render')
-
       const userId = props.referencedMessage.message?.author.id
       if (res.props.children[0].type === 'img') {
         res.props.children[0] = React.createElement(PrideRing.PrideAvatar, {
@@ -317,7 +309,6 @@ class PronounDB extends Plugin {
     })
 
     inject('pronoundb-pride-direct-message', DirectMessage.prototype, 'render', function (_, res) {
-      console.log('direct message render')
       if (this.props.channel.type !== 1) {
         return res
       }
