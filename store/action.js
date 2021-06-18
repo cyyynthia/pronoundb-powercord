@@ -30,14 +30,29 @@ const { FluxDispatcher } = require('powercord/webpack')
 const { shouldFetchPronouns } = require('./store.js')
 const { FluxActions, Endpoints } = require('../constants.js')
 
+const SOURCE = `Powercord/2.0.0, Discord/${GLOBAL_ENV.RELEASE_CHANNEL}, Electron/${process.versions.electron}`
+
 async function doLoadPronouns (ids) {
+  if (!ids.length) return
+  if (ids.length === 1) {
+    // Don't bulk, to increase the chances of cache hits on new api.
+    const pronouns = await get(Endpoints.LOOKUP(ids[0]))
+      .set('x-pronoundb-source', SOURCE)
+      .then(r => r.body.pronouns || null)
+      .catch(() => null)
+
+    FluxDispatcher.dirtyDispatch({ type: FluxActions.PRONOUNS_LOADED, pronouns: { [ids[0]]: pronouns } })
+    return
+  }
+
   const pronouns = await get(Endpoints.LOOKUP_BULK(ids))
-    .set('x-pronoundb-source', 'Powercord (v2.0.0)')
+    .set('x-pronoundb-source', SOURCE)
     .then(r => r.body)
     .catch(() => ({}))
 
   FluxDispatcher.dirtyDispatch({
     type: FluxActions.PRONOUNS_LOADED,
+    // todo: remove when new api is deployed
     pronouns: Object.assign(Object.fromEntries(Object.values(ids).map((id) => [ id, null ])), pronouns)
   })
 }

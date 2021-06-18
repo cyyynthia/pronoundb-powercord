@@ -44,7 +44,6 @@ const Settings = require('./components/Settings.jsx')
 const SelectInput = AsyncComponent.from(getModuleByDisplayName('SelectTempWrapper'))
 const PronounsKeys = Object.keys(AvailablePronouns).filter((p) => p !== 'ask' && p !== 'unspecified')
 
-
 class PronounDB extends Plugin {
   async startPlugin () {
     this.loadStylesheet('style.css')
@@ -409,9 +408,8 @@ class PronounDB extends Plugin {
       FluxDispatcher.dirtyDispatch({ type: 'PRESENCE_UPDATE', user: { id: id }, activities: activities, status: status })
     }
 
-    for (const voice of document.querySelectorAll('.voiceUser-1K6Xox')) {
-      voice.click()
-    }
+    for (const voice of document.querySelectorAll('.voiceUser-1K6Xox')) voice.click()
+    setTimeout(() => document.body.click(), 0)
 
     for (const guild of document.querySelectorAll('.listItem-GuPuDH')) {
       const res = findInTree(guild, (n) => n.type?.displayName === 'DirectMessage', { walkable: [ 'return' ] })
@@ -420,7 +418,6 @@ class PronounDB extends Plugin {
       res.stateNode.forceUpdate()
     }
 
-    setTimeout(() => document.body.click(), 0)
   }
 
   _promptAddPronouns (user) {
