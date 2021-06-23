@@ -58,7 +58,8 @@ class PronounDB extends Plugin {
     const DMUserContextMenu = await getModule((m) => m.default?.displayName == 'DMUserContextMenu')
     const UserInfoBase = await getModule((m) => m.default?.displayName == 'UserInfoBase')
     const MessageHeader = await this._getMessageHeader()
-    const UserPopOut = await this._getUserPopOut()
+    //  UserPopOut = await this._getUserPopOut()
+    const UserPopOut = await getModule((m) => m.default?.displayName == 'UserPopoutBody')
     const Autocomplete = await getModuleByDisplayName('Autocomplete')
 
     inject('pronoundb-messages-header', MessageHeader, 'default', function ([ props ], res) {
@@ -80,18 +81,15 @@ class PronounDB extends Plugin {
       return res
     })
 
-    inject('pronoundb-popout-render', UserPopOut.prototype, 'renderBody', function (_, res) {
-      const id = findInReactTree(res, (n) => n.userId)?.userId
-      if (!id) return res
-
-      res.props.children.props.children.push(
+    inject('pronoundb-popout-render', UserPopOut, 'default', function ([ { user } ], res) {
+      res.props.children.push(
         React.createElement(Pronouns, {
-          userId: id,
+          userId: user.id,
           region: 'popout',
           render: (p) => React.createElement(
             React.Fragment,
             null,
-            React.createElement('div', { className: 'bodyTitle-3FWCs2' }, 'Pronouns'),
+            React.createElement('div', { className: 'bodyTitle-1ySSKn base-1x0h_U size12-3cLvbJ muted-3-7c5L uppercase-3VWUQ9' }, 'Pronouns'),
             React.createElement('div', { className: 'marginBottom8-AtZOdT size14-e6ZScH' }, p)
           )
         })
@@ -149,6 +147,7 @@ class PronounDB extends Plugin {
     inject('pronoundb-user-add-pronouns-dm', DMUserContextMenu, 'default', ctxMenuInjection)
 
     UserInfoBase.default.displayName = 'UserInfoBase'
+    UserPopOut.default.displayName = 'UserPopoutBody'
     GuildChannelUserContextMenu.default.displayName = 'GuildChannelUserContextMenu'
     DMUserContextMenu.default.displayName = 'DMUserContextMenu'
 
