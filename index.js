@@ -486,7 +486,6 @@ class PronounDB extends Plugin {
     } finally {
       userStore.getCurrentUser = ogGetCurrentUser
     }
-    console.log(res)
     return res
   }
 }
