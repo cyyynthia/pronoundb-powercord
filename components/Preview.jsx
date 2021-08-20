@@ -36,7 +36,8 @@ const CHANNEL = {
   isPrivate: () => false,
   isSystemDM: () => false,
   getGuildId: () => 'uwu',
-  isArchivedThread: () => false
+  isArchivedThread: () => false,
+  isThread: () => false
 };
 
 const MESSAGE = new Message({
@@ -48,6 +49,7 @@ const MESSAGE = new Message({
     toString: () => 'Cynthia 🌹',
     isSystemUser: () => false,
     isVerifiedBot: () => false,
+    isNonUserBot: () => false,
     getAvatarURL: () => 'https://powercord.dev/api/v2/avatar/94762492923748352.png'
   },
   content: `By the way, to share your own pronouns go to ${WEBSITE} and set them there. <a:ablobcatheart:501940715077763072>`
