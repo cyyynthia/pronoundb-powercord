@@ -474,7 +474,7 @@ class PronounDB extends Plugin {
   }
 
   async _getUserPopOut () {
-    const userStore = await getModule([ 'getCurrentUser' ])
+    const userStore = await getModule([ 'getCurrentUser', 'getUser' ])
     const fnUserPopOut = await getModule((m) => m.type?.displayName === 'UserPopoutContainer')
 
     const ogGetCurrentUser = userStore.getCurrentUser
