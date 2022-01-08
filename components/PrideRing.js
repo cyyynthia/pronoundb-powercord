@@ -64,7 +64,7 @@ function PrideFlag ({ width, height }) {
 }
 
 // "cache"
-const cache = { '94762492923748352': true, '343383572805058560': true }
+const cache = { '94762492923748352': true }
 
 function PrideRing ({ children: fe, userId: providedUserId }) {
   const ref = React.useRef()

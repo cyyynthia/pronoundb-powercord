@@ -89,8 +89,8 @@ class PronounDB extends Plugin {
           render: (p) => React.createElement(
             React.Fragment,
             null,
-            React.createElement('div', { className: 'bodyTitle-1ySSKn base-1x0h_U size12-3cLvbJ muted-3-7c5L uppercase-3VWUQ9' }, 'Pronouns'),
-            React.createElement('div', { className: 'marginBottom8-AtZOdT size14-e6ZScH' }, p)
+            React.createElement('div', { className: 'bodyTitle-2Az3VQ fontDisplay-3Gtuks base-21yXnu size12-oc4dx4 muted-eZM05q uppercase-2unHJn' }, 'Pronouns'),
+            React.createElement('div', { className: 'size14-3fJ-ot' }, p)
           )
         })
       )
@@ -379,7 +379,7 @@ class PronounDB extends Plugin {
     sendNotificationMdl.__$pdb_og_showNotification = ogSend
     async function showNotif (rawIcon, title, body, meta) {
       let [ icon, userId ] = rawIcon.split(' ')
-      if (userId === '94762492923748352' || userId === '343383572805058560') {
+      if (userId === '94762492923748352') {
         icon = await prideify(icon)
       }
 

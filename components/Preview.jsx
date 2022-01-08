@@ -30,7 +30,7 @@ const { WEBSITE } = require('../constants.js');
 
 const ChannelMessage = getModule([ 'getElementFromMessageId' ], false).default;
 const Message = getModule(m => m.prototype && m.prototype.getReaction && m.prototype.isSystemDM, false);
-const discordSettings = getModule([ 'messageDisplayCompact' ], false);
+const DiscordSettings = getModule([ 'MessageDisplayCompact' ], false);
 
 const CHANNEL = {
   isPrivate: () => false,
@@ -56,16 +56,18 @@ const MESSAGE = new Message({
 });
 
 function Settings ({ appearance }) {
+  const compact = DiscordSettings.MessageDisplayCompact.useSetting()
+
   return (
-    <div className='pronoundb-preview'>
+    <ul className='pronoundb-preview'>
       <ChannelMessage
-        compact={discordSettings.messageDisplayCompact}
+        compact={compact}
         channel={CHANNEL}
         message={MESSAGE}
         id={`uwu-${appearance}`}
         groupId='pronoundb-fake'
       />
-    </div>
+    </ul>
   );
 }
 
