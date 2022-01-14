@@ -71,6 +71,14 @@ function Settings ({ getSetting, updateSetting, toggleSetting }) {
       <SwitchItem value={getSetting('display-autocomplete', true)} onChange={() => toggleSetting('display-autocomplete', true)}>
         Show pronouns in autocomplete
       </SwitchItem>
+
+      <SwitchItem
+        value={getSetting('hide-self', false)}
+        onChange={() => toggleSetting('hide-self', false)}
+        note='This will locally hide your own pronouns, if you do not wish them to appear.'
+      >
+        Do not show pronouns for myself
+      </SwitchItem>
     </div>
   )
 }

@@ -32,6 +32,7 @@ const store = require('../store/store.js')
 const { formatPronouns } = require('../util.js')
 const { PronounsExample } = require('../constants.js')
 const { default: Tooltip } = getModule([ 'TooltipContainer' ], false)
+const UsersStore = getModule([ 'getCurrentUser', 'getUser' ], false)
 
 function Pronouns ({ userId, render, prefix, display, pronouns, manualPronouns, format }) {
   React.useEffect(() => void loadPronouns(userId), [ userId ])
@@ -64,11 +65,12 @@ function Pronouns ({ userId, render, prefix, display, pronouns, manualPronouns, 
 }
 
 module.exports = Flux.connectStores(
-  [ store, powercord.api.settings.store ],
+  [ store, powercord.api.settings.store, UsersStore ],
   ({ userId, region }) => ({
     pronouns: store.getPronouns(userId),
     manualPronouns: powercord.api.settings.store.getSetting('pronoundb-powercord', `pronouns-${userId}`, null),
     format: powercord.api.settings.store.getSetting('pronoundb-powercord', 'format', 'lower'),
-    display: powercord.api.settings.store.getSetting('pronoundb-powercord', `display-${region}`, true)
+    display: powercord.api.settings.store.getSetting('pronoundb-powercord', `display-${region}`, true) &&
+      (UsersStore.getCurrentUser().id !== userId || !powercord.api.settings.store.getSetting('pronoundb-powercord', 'hide-self', false))
   })
 )(React.memo(Pronouns))

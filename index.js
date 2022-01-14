@@ -72,7 +72,7 @@ class PronounDB extends Plugin {
           },
           React.createElement(Pronouns, {
             userId: props.message.author.id,
-            region: props.message.id === 'pronoundb-fake' ? 'settings' : 'chat',
+            region: props.message.id.startsWith('pronoundb-fake') ? 'settings' : 'chat',
             prefix: ' • '
           })
         )

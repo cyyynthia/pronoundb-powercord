@@ -31,6 +31,7 @@ const { WEBSITE } = require('../constants.js');
 const ChannelMessage = getModule([ 'getElementFromMessageId' ], false).default;
 const Message = getModule(m => m.prototype && m.prototype.getReaction && m.prototype.isSystemDM, false);
 const DiscordSettings = getModule([ 'MessageDisplayCompact' ], false);
+const { getCurrentUser } = getModule([ 'getCurrentUser', 'getUser' ], false);
 
 const CHANNEL = {
   isPrivate: () => false,
@@ -40,32 +41,62 @@ const CHANNEL = {
   isThread: () => false
 };
 
-const MESSAGE = new Message({
-  id: 'pronoundb-fake',
-  type: 0,
-  author: {
-    id: '94762492923748352',
-    username: 'Cynthia 🌹',
-    toString: () => 'Cynthia 🌹',
-    isSystemUser: () => false,
-    isVerifiedBot: () => false,
-    isNonUserBot: () => false,
-    getAvatarURL: () => 'https://powercord.dev/api/v2/avatar/94762492923748352.png'
-  },
-  content: `By the way, to share your own pronouns go to ${WEBSITE} and set them there. <a:ablobcatheart:501940715077763072>`
-});
+const EMOJIS = [ '🎀', '🍩', '🍭', '☕', '🌸', '🌹', '🐿️', '🐈', '👒', '🧣' ]
+
+function useMessages () {
+  const emoji = React.useMemo(() => {
+    const today = new Date()
+    if (today.getUTCMonth() === 4 && today.getUTCDate() === 30)
+      return '🎂'
+    if (today.getUTCMonth() === 6 && today.getUTCDate() === 14)
+      return '🇫🇷'
+
+    return EMOJIS[Math.floor(Math.random() * EMOJIS.length)]
+  })
+
+  return React.useMemo(() => [
+    new Message({
+      id: 'pronoundb-fake-1',
+      type: 0,
+      author: getCurrentUser(),
+      content: 'Hey look, its me 🤩'
+    }),
+    new Message({
+      id: 'pronoundb-fake-2',
+      type: 0,
+      author: {
+        id: '94762492923748352',
+        username: `Cynthia ${emoji}`,
+        toString: () => `Cynthia ${emoji}`,
+        isSystemUser: () => false,
+        isVerifiedBot: () => false,
+        isNonUserBot: () => false,
+        getAvatarURL: () => 'https://powercord.dev/api/v2/avatar/94762492923748352.png'
+      },
+      content: `By the way, to share your own pronouns go to ${WEBSITE} and set them there. <a:ablobcatheart:501940715077763072>`
+    })
+  ])
+}
 
 function Settings ({ appearance }) {
   const compact = DiscordSettings.MessageDisplayCompact.useSetting()
+  const [ message1, message2 ] = useMessages()
 
   return (
-    <ul className='pronoundb-preview'>
+    <ul className='group-spacing-16 pronoundb-preview'>
       <ChannelMessage
         compact={compact}
         channel={CHANNEL}
-        message={MESSAGE}
-        id={`uwu-${appearance}`}
-        groupId='pronoundb-fake'
+        message={message1}
+        id={`uwu-1-${appearance}`}
+        groupId='pronoundb-fake-1'
+      />
+      <ChannelMessage
+        compact={compact}
+        channel={CHANNEL}
+        message={message2}
+        id={`uwu-2-${appearance}`}
+        groupId='pronoundb-fake-2'
       />
     </ul>
   );
