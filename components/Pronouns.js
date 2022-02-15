@@ -36,7 +36,7 @@ const UsersStore = getModule([ 'getCurrentUser', 'getUser' ], false)
 
 function Pronouns ({ userId, render, prefix, display, pronouns, manualPronouns, format }) {
   React.useEffect(() => void loadPronouns(userId), [ userId ])
-  const effectivePronouns = pronouns === null ? manualPronouns : pronouns
+  const effectivePronouns = pronouns === 'unspecified' || pronouns === null ? manualPronouns : pronouns
   const p = formatPronouns(effectivePronouns ?? 'unspecified', format)
 
   if (!p || !display) return null

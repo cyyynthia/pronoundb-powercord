@@ -27,21 +27,19 @@
 
 const { Plugin } = require('powercord/entities')
 const { inject, uninject } = require('powercord/injector')
-const { React, getModule, getModuleByDisplayName, FluxDispatcher, channels } = require('powercord/webpack')
+const { React, getModule, getModuleByDisplayName } = require('powercord/webpack')
 const { open: openModal, close: closeModal } = require('powercord/modal')
 const { Confirm } = require('powercord/components/modal')
-const { Menu, FormTitle, AsyncComponent } = require('powercord/components')
-const { findInReactTree, findInTree, injectContextMenu } = require('powercord/util')
+const { Menu, FormTitle } = require('powercord/components')
+const { findInReactTree, getReactInstance, injectContextMenu } = require('powercord/util')
 const { formatPronouns } = require('./util.js')
 const { Pronouns: AvailablePronouns } = require('./constants.js')
-const prideify = require('./prideify.js');
 
 const usePronouns = require('./store/usePronouns.js')
 const Pronouns = require('./components/Pronouns.js')
-const PrideRing = require('./components/PrideRing.js')
 const Settings = require('./components/Settings.jsx')
 
-const SelectInput = AsyncComponent.from(getModuleByDisplayName('SelectTempWrapper'))
+const SelectInput = getModule([ 'SingleSelect' ], false).SingleSelect
 const PronounsKeys = Object.keys(AvailablePronouns).filter((p) => p !== 'ask' && p !== 'unspecified')
 
 class PronounDB extends Plugin {
@@ -154,7 +152,6 @@ class PronounDB extends Plugin {
     function ctxMenuInjection ([ { user } ], res) {
       const pronouns = usePronouns(user.id)
       const group = findInReactTree(res, (n) => n.children?.find?.((c) => c?.props?.id === 'note'))
-      console.log(pronouns, res, group)
       if (!group) return res
 
       const note = group.children.indexOf((n) => n?.props?.id === 'note')
@@ -216,7 +213,7 @@ class PronounDB extends Plugin {
           confirmText: 'Apply',
           cancelText: 'Cancel',
           className: 'pronoundb-modal',
-          confirmButtonColor: 'colorBrand-3pXr91',
+          confirmButtonColor: 'colorBrand-I6CyqQ',
           onConfirm: () => this.settings.set(`pronouns-${user.id}`, pronouns),
           onCancel: closeModal
         },
@@ -226,7 +223,7 @@ class PronounDB extends Plugin {
           React.createElement(FormTitle, null, 'Pronouns'),
           React.createElement(SelectInput, {
             searchable: false,
-            onChange: (e) => setPronouns(e.value),
+            onChange: (v) => setPronouns(v),
             value: pronouns,
             options: [
               { label: 'Unset', value: 'unspecified' },

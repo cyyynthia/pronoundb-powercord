@@ -49,9 +49,7 @@ async function doLoadPronoun (id) {
 module.exports = function usePronouns (id) {
   const [ pronouns, setPronouns ] = React.useState(null)
   React.useEffect(() => {
-    console.log('ok', shouldFetchPronouns(id))
     if (!shouldFetchPronouns(id)) {
-      console.log('ok?', getPronouns(id) ?? 'unspecified')
       setPronouns(getPronouns(id) ?? 'unspecified')
       return
     }
