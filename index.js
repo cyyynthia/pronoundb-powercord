@@ -31,8 +31,8 @@ const { React, getModule, getModuleByDisplayName, FluxDispatcher, channels } = r
 const { open: openModal, close: closeModal } = require('powercord/modal')
 const { Confirm } = require('powercord/components/modal')
 const { Menu, FormTitle, AsyncComponent } = require('powercord/components')
-const { findInReactTree, findInTree } = require('powercord/util')
-const { wrapInHooks, formatPronouns } = require('./util.js')
+const { findInReactTree, findInTree, injectContextMenu } = require('powercord/util')
+const { formatPronouns } = require('./util.js')
 const { Pronouns: AvailablePronouns } = require('./constants.js')
 const prideify = require('./prideify.js');
 
@@ -54,12 +54,9 @@ class PronounDB extends Plugin {
     })
 
     const _this = this;
-    const GuildChannelUserContextMenu = await getModule((m) => m.default?.displayName == 'GuildChannelUserContextMenu')
-    const DMUserContextMenu = await getModule((m) => m.default?.displayName == 'DMUserContextMenu')
     const UserInfoBase = await getModule((m) => m.default?.displayName == 'UserInfoBase')
     const MessageHeader = await this._getMessageHeader()
-    //  UserPopOut = await this._getUserPopOut()
-    const UserPopOut = await getModule((m) => m.default?.displayName == 'UserPopoutBody')
+    const UserPopOutComponents = await getModule([ 'UserPopoutProfileText' ])
     const Autocomplete = await getModuleByDisplayName('Autocomplete')
 
     inject('pronoundb-messages-header', MessageHeader, 'default', function ([ props ], res) {
@@ -68,7 +65,14 @@ class PronounDB extends Plugin {
           'span',
           {
             className: 'pronoundb-pronouns',
-            style: { color: 'var(--text-muted)', fontSize: '.9rem', marginRight: props.compact ? '.6rem' : '' }
+            style: {
+              color: 'var(--text-muted)',
+              fontSize: '.75rem',
+              fontWeight: 500,
+              lineHeight: '1.375rem',
+              display: 'inline-block',
+              marginRight: props.compact ? '.6rem' : ''
+            }
           },
           React.createElement(Pronouns, {
             userId: props.message.author.id,
@@ -81,23 +85,38 @@ class PronounDB extends Plugin {
       return res
     })
 
-    inject('pronoundb-popout-render', UserPopOut, 'default', function ([ { user } ], res) {
-      res.props.children.push(
-        React.createElement(Pronouns, {
-          userId: user.id,
-          region: 'popout',
-          render: (p) => React.createElement(
-            React.Fragment,
-            null,
-            React.createElement('div', { className: 'bodyTitle-2Az3VQ fontDisplay-3Gtuks base-21yXnu size12-oc4dx4 muted-eZM05q uppercase-2unHJn' }, 'Pronouns'),
-            React.createElement('div', { className: 'size14-3fJ-ot' }, p)
+    inject('pronoundb-popout-render', UserPopOutComponents, 'UserPopoutProfileText', function ([ { user } ], res) {
+      if (!res.props.children[3]) {
+        res.props.children.push(
+          React.createElement(Pronouns, {
+            userId: user.id,
+            region: 'popout',
+            render: (p) => React.createElement(
+              'div',
+              { className: 'aboutMeSection-PUghFQ' },
+              React.createElement('h3', { className: 'aboutMeTitle-3pjiS7 base-21yXnu size12-oc4dx4 muted-eZM05q uppercase-2unHJn' }, 'Pronouns'),
+              React.createElement('div', { className: 'aboutMeBody-1J8rhz markup-eYLPri clamped-2ZePhX' }, p)
+            )
+          })
+        )
+      } else {
+        res.props.children[3].props.children.push(
+          React.createElement(
+            'div',
+            { className: 'pronoundb-pronouns aboutMeBody-1J8rhz markup-eYLPri clamped-2ZePhX' },
+            React.createElement(Pronouns, {
+              userId: user.id,
+              region: 'popout',
+              prefix: '\n'
+            })
           )
-        })
-      )
+        )
+      }
 
       return res
     })
 
+    /*
     inject('pronoundb-profile-render', UserInfoBase, 'default', function ([ props ], res) {
       res.props.children[0].props.children.push(
         React.createElement(Pronouns, {
@@ -114,6 +133,8 @@ class PronounDB extends Plugin {
 
       return res;
     });
+    UserInfoBase.default.displayName = 'UserInfoBase'
+    */
 
     inject('pronoundb-autocomplete-render', Autocomplete.User.prototype, 'renderContent', function (_, res) {
       if (!_this.settings.get('display-autocomplete', true)) return res
@@ -133,6 +154,7 @@ class PronounDB extends Plugin {
     function ctxMenuInjection ([ { user } ], res) {
       const pronouns = usePronouns(user.id)
       const group = findInReactTree(res, (n) => n.children?.find?.((c) => c?.props?.id === 'note'))
+      console.log(pronouns, res, group)
       if (!group) return res
 
       const note = group.children.indexOf((n) => n?.props?.id === 'note')
@@ -143,13 +165,8 @@ class PronounDB extends Plugin {
       return res
     }
 
-    inject('pronoundb-user-add-pronouns-guild', GuildChannelUserContextMenu, 'default', ctxMenuInjection)
-    inject('pronoundb-user-add-pronouns-dm', DMUserContextMenu, 'default', ctxMenuInjection)
-
-    UserInfoBase.default.displayName = 'UserInfoBase'
-    UserPopOut.default.displayName = 'UserPopoutBody'
-    GuildChannelUserContextMenu.default.displayName = 'GuildChannelUserContextMenu'
-    DMUserContextMenu.default.displayName = 'DMUserContextMenu'
+    injectContextMenu('pronoundb-user-add-pronouns-guild', 'GuildChannelUserContextMenu', ctxMenuInjection)
+    injectContextMenu('pronoundb-user-add-pronouns-dm', 'DMUserContextMenu', ctxMenuInjection)
 
     if (this.settings.get('experiment-pride-flags')) {
       await this._injectPride()
@@ -471,21 +488,6 @@ class PronounDB extends Plugin {
       return typeof def === 'function' ? def : null
     }
     return getModule((m) => d(m)?.toString().includes('showTimestampOnHover'))
-  }
-
-  async _getUserPopOut () {
-    const userStore = await getModule([ 'getCurrentUser', 'getUser' ])
-    const fnUserPopOut = await getModule((m) => m.type?.displayName === 'UserPopoutContainer')
-
-    const ogGetCurrentUser = userStore.getCurrentUser
-    userStore.getCurrentUser = () => ({ id: '0' })
-    let res
-    try {
-      res = wrapInHooks(() => fnUserPopOut.type({ user: { isNonUserBot: () => void 0 } }).type)()
-    } finally {
-      userStore.getCurrentUser = ogGetCurrentUser
-    }
-    return res
   }
 }
 

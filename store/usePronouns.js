@@ -30,9 +30,11 @@ const { React, FluxDispatcher } = require('powercord/webpack')
 const { getPronouns, shouldFetchPronouns } = require('./store.js')
 const { FluxActions, Endpoints } = require('../constants.js')
 
+const SOURCE = `Powercord/2.0.0, Discord/${GLOBAL_ENV.RELEASE_CHANNEL}, Electron/${process.versions.electron}`
+
 async function doLoadPronoun (id) {
   const pronouns = await get(Endpoints.LOOKUP(id))
-      .set('x-pronoundb-source', 'Powercord (v2.0.0)')
+      .set('x-pronoundb-source', SOURCE)
       .then((r) => r.body.pronouns || null)
       .catch(() => null)
 
@@ -47,7 +49,9 @@ async function doLoadPronoun (id) {
 module.exports = function usePronouns (id) {
   const [ pronouns, setPronouns ] = React.useState(null)
   React.useEffect(() => {
+    console.log('ok', shouldFetchPronouns(id))
     if (!shouldFetchPronouns(id)) {
+      console.log('ok?', getPronouns(id) ?? 'unspecified')
       setPronouns(getPronouns(id) ?? 'unspecified')
       return
     }

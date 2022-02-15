@@ -79,8 +79,7 @@ const PronounsExample = Object.freeze({
   th: [ THEY_EXAMPLE, HE_EXAMPLE ],
   ti: [ THEY_EXAMPLE, IT_EXAMPLE ],
   ts: [ THEY_EXAMPLE, SHE_EXAMPLE ],
-  tt: [ THEY_EXAMPLE ],
-  any: [ HE_EXAMPLE, IT_EXAMPLE, SHE_EXAMPLE, THEY_EXAMPLE ]
+  tt: [ THEY_EXAMPLE ]
 })
 
 const FluxActions = Object.freeze({
