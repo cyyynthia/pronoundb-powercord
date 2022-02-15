@@ -84,7 +84,7 @@ function Settings ({ appearance }) {
   const [ message1, message2 ] = useMessages()
 
   return (
-    <ul className='group-spacing-16 pronoundb-preview'>
+    <ul className={`group-spacing-${compact ? '0' : '16'} pronoundb-preview`}>
       <ChannelMessage
         compact={compact}
         channel={CHANNEL}
