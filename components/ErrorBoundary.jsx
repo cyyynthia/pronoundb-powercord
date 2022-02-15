@@ -38,7 +38,7 @@ class ErrorBoundary extends React.PureComponent {
     super(props)
 
     this.state = {
-      it: Math.random() > .5,
+      it: Math.random() > .6,
       crashed: false
     }
   }

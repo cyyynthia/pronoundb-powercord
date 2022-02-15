@@ -37,8 +37,9 @@ const CHANNEL = {
   isPrivate: () => false,
   isSystemDM: () => false,
   getGuildId: () => 'uwu',
+  isThread: () => false,
   isArchivedThread: () => false,
-  isThread: () => false
+  isForumChannel: () => false,
 };
 
 const EMOJIS = [ '🎀', '🍩', '🍭', '☕', '🌸', '🌹', '🐿️', '🐈', '👒', '🧣' ]
@@ -71,7 +72,7 @@ function useMessages () {
         isSystemUser: () => false,
         isVerifiedBot: () => false,
         isNonUserBot: () => false,
-        getAvatarURL: () => 'https://powercord.dev/api/v2/avatar/94762492923748352.png'
+        getAvatarURL: () => 'https://powercord.dev/api/v3/avatars/94762492923748352.png'
       },
       content: `By the way, to share your own pronouns go to ${WEBSITE} and set them there. <a:ablobcatheart:501940715077763072>`
     })

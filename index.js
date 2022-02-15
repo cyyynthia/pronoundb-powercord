@@ -61,17 +61,7 @@ class PronounDB extends Plugin {
       res.props.children[1].props.children.push(
         React.createElement(
           'span',
-          {
-            className: 'pronoundb-pronouns',
-            style: {
-              color: 'var(--text-muted)',
-              fontSize: '.75rem',
-              fontWeight: 500,
-              lineHeight: '1.375rem',
-              display: 'inline-block',
-              marginRight: props.compact ? '.6rem' : ''
-            }
-          },
+          { className: 'pronoundb-pronouns' },
           React.createElement(Pronouns, {
             userId: props.message.author.id,
             region: props.message.id.startsWith('pronoundb-fake') ? 'settings' : 'chat',
