@@ -57,24 +57,29 @@ class PronounDB extends Plugin {
     const UserPopOutComponents = await getModule([ 'UserPopoutProfileText' ])
     const Autocomplete = await getModuleByDisplayName('Autocomplete')
 
+    let memoizedType
     inject('pronoundb-messages-header', MessageHeader, 'default', function ([ props ], res) {
-      const ogType = res.type
-      res.type = (props) => {
-        const res = ogType(props)
-        res.props.children[1].props.children.push(
-          React.createElement(
-            'span',
-            { className: 'pronoundb-pronouns' },
-            React.createElement(Pronouns, {
-              userId: props.message.author.id,
-              region: props.message.id.startsWith('pronoundb-fake') ? 'settings' : 'chat',
-              prefix: ' • '
-            })
+      if (!memoizedType) {
+        const ogType = res.type
+        memoizedType = (props) => {
+          const res = ogType(props)
+          res.props.children[1].props.children.push(
+            React.createElement(
+              'span',
+              { className: 'pronoundb-pronouns' },
+              React.createElement(Pronouns, {
+                userId: props.message.author.id,
+                region: props.message.id.startsWith('pronoundb-fake') ? 'settings' : 'chat',
+                prefix: ' • '
+              })
+            )
           )
-        )
 
-        return res
+          return res
+        }
       }
+
+      res.type = memoizedType
       return res
     })
 
