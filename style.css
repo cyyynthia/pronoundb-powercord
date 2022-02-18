@@ -30,7 +30,7 @@
   display: none !important;
 }
 
-.message-2CShn3 .pronoundb-pronouns {
+:is(.message-2CShn3, .message-24k8JL) .pronoundb-pronouns {
   display: inline-block;
   cursor: default;
   height: 1.25rem;
@@ -41,7 +41,7 @@
   user-select: none;
 }
 
-.message-2CShn3 .pronoundb-pronouns span {
+:is(.message-2CShn3, .message-24k8JL) .pronoundb-pronouns span {
   user-select: text;
 }
 
