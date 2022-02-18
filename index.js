@@ -58,18 +58,23 @@ class PronounDB extends Plugin {
     const Autocomplete = await getModuleByDisplayName('Autocomplete')
 
     inject('pronoundb-messages-header', MessageHeader, 'default', function ([ props ], res) {
-      res.props.children[1].props.children.push(
-        React.createElement(
-          'span',
-          { className: 'pronoundb-pronouns' },
-          React.createElement(Pronouns, {
-            userId: props.message.author.id,
-            region: props.message.id.startsWith('pronoundb-fake') ? 'settings' : 'chat',
-            prefix: ' • '
-          })
+      const ogType = res.type
+      res.type = (props) => {
+        const res = ogType(props)
+        res.props.children[1].props.children.push(
+          React.createElement(
+            'span',
+            { className: 'pronoundb-pronouns' },
+            React.createElement(Pronouns, {
+              userId: props.message.author.id,
+              region: props.message.id.startsWith('pronoundb-fake') ? 'settings' : 'chat',
+              prefix: ' • '
+            })
+          )
         )
-      )
 
+        return res
+      }
       return res
     })
 
