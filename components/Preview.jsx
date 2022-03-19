@@ -40,6 +40,7 @@ const CHANNEL = {
   isThread: () => false,
   isArchivedThread: () => false,
   isForumChannel: () => false,
+  isForumPost: () => false,
 };
 
 const EMOJIS = [ '🎀', '🍩', '🍭', '☕', '🌸', '🌹', '🐿️', '🐈', '👒', '🧣' ]
