@@ -91,9 +91,9 @@ class PronounDB extends Plugin {
             region: 'popout',
             render: (p) => React.createElement(
               'div',
-              { className: 'aboutMeSection-PUghFQ' },
-              React.createElement('h3', { className: 'aboutMeTitle-3pjiS7 base-21yXnu size12-oc4dx4 muted-eZM05q uppercase-2unHJn' }, 'Pronouns'),
-              React.createElement('div', { className: 'aboutMeBody-1J8rhz markup-eYLPri clamped-2ZePhX' }, p)
+              { className: 'userInfoSection-3her-v' },
+              React.createElement('h3', { className: 'userInfoTitle-39qq0Y base-21yXnu size12-oc4dx4 muted-eZM05q uppercase-2unHJn' }, 'Pronouns'),
+              React.createElement('div', { className: 'userInfoBody-1zgAd0 markup-eYLPri clamped-2ZePhX' }, p)
             )
           })
         )
@@ -101,7 +101,7 @@ class PronounDB extends Plugin {
         res.props.children[3].props.children.push(
           React.createElement(
             'div',
-            { className: 'pronoundb-pronouns aboutMeBody-1J8rhz markup-eYLPri clamped-2ZePhX' },
+            { className: 'pronoundb-pronouns userInfoBody-1zgAd0 markup-eYLPri clamped-2ZePhX' },
             React.createElement(Pronouns, {
               userId: user.id,
               region: 'popout',
