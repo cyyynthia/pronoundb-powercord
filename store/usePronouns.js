@@ -38,7 +38,7 @@ async function doLoadPronoun (id) {
       .then((r) => r.body.pronouns || null)
       .catch(() => null)
 
-  FluxDispatcher.dirtyDispatch({
+  FluxDispatcher.dispatch({
     type: FluxActions.PRONOUNS_LOADED,
     pronouns: { [id]: pronouns }
   })
