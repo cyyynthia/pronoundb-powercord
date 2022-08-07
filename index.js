@@ -83,11 +83,11 @@ class PronounDB extends Plugin {
       return res
     })
 
-    inject('pronoundb-popout-render', UserPopOutComponents, 'UserPopoutProfileText', function ([ { user } ], res) {
+    inject('pronoundb-popout-render', UserPopOutComponents, 'UserPopoutProfileText', function ([ { displayProfile } ], res) {
       if (!res.props.children[3]) {
         res.props.children.push(
           React.createElement(Pronouns, {
-            userId: user.id,
+            userId: displayProfile.userId,
             region: 'popout',
             render: (p) => React.createElement(
               'div',
@@ -103,7 +103,7 @@ class PronounDB extends Plugin {
             'div',
             { className: 'pronoundb-pronouns userInfoBody-1zgAd0 markup-eYLPri clamped-2ZePhX' },
             React.createElement(Pronouns, {
-              userId: user.id,
+              userId: displayProfile.userId,
               region: 'popout',
               prefix: '\n'
             })
