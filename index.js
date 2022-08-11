@@ -84,7 +84,8 @@ class PronounDB extends Plugin {
     })
 
     inject('pronoundb-popout-render', UserPopOutComponents, 'UserPopoutProfileText', function ([ { displayProfile } ], res) {
-      if (!res.props.children[3]) {
+      // FIXME: Hotfix for the UserBio component changing. Currently just always displays the pronouns as their own section.
+      if (!res.props.children[3] || true) {
         res.props.children.push(
           React.createElement(Pronouns, {
             userId: displayProfile.userId,
@@ -92,8 +93,13 @@ class PronounDB extends Plugin {
             render: (p) => React.createElement(
               'div',
               { className: 'userInfoSection-3her-v' },
-              React.createElement('h3', { className: 'userInfoTitle-39qq0Y base-21yXnu size12-oc4dx4 muted-eZM05q uppercase-2unHJn' }, 'Pronouns'),
-              React.createElement('div', { className: 'userInfoBody-1zgAd0 markup-eYLPri clamped-2ZePhX' }, p)
+              React.createElement('h3', {
+                className: 'eyebrow-Ejf06y defaultColor-HXu-5n userInfoTitle-39qq0Y',
+                style: { color: 'var(--header-secondary)' }
+              },'Pronouns'),
+              React.createElement('div', {
+                className: 'userInfoBody-1zgAd0 markup-eYLPri clamped-2ZePhX'
+              }, p)
             )
           })
         )
