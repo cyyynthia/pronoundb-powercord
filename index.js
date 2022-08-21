@@ -155,18 +155,18 @@ class PronounDB extends Plugin {
       return res
     })
 
-    function ctxMenuInjection ([ { user } ], res) {
-      const pronouns = usePronouns(user.id)
-      const group = findInReactTree(res, (n) => n.children?.find?.((c) => c?.props?.id === 'note'))
-      if (!group) return res
+    // function ctxMenuInjection ([ { user } ], res) {
+    //   const pronouns = usePronouns(user.id)
+    //   const group = findInReactTree(res, (n) => n.children?.find?.((c) => c?.props?.id === 'note'))
+    //   if (!group) return res
 
-      const note = group.children.indexOf((n) => n?.props?.id === 'note')
-      if (pronouns === 'unspecified') {
-        group.children.splice(note, 0, React.createElement(Menu.MenuItem, { id: 'pronoundb', label: 'Add Pronouns', action: () => _this._promptAddPronouns(user) }))
-      }
+    //   const note = group.children.indexOf((n) => n?.props?.id === 'note')
+    //   if (pronouns === 'unspecified') {
+    //     group.children.splice(note, 0, React.createElement(Menu.MenuItem, { id: 'pronoundb', label: 'Add Pronouns', action: () => _this._promptAddPronouns(user) }))
+    //   }
 
-      return res
-    }
+    //   return res
+    // }
 
     injectContextMenu('pronoundb-user-add-pronouns-guild', 'GuildChannelUserContextMenu', ctxMenuInjection)
     injectContextMenu('pronoundb-user-add-pronouns-dm', 'DMUserContextMenu', ctxMenuInjection)
