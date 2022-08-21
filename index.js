@@ -168,8 +168,8 @@ class PronounDB extends Plugin {
     //   return res
     // }
 
-    injectContextMenu('pronoundb-user-add-pronouns-guild', 'GuildChannelUserContextMenu', ctxMenuInjection)
-    injectContextMenu('pronoundb-user-add-pronouns-dm', 'DMUserContextMenu', ctxMenuInjection)
+    // injectContextMenu('pronoundb-user-add-pronouns-guild', 'GuildChannelUserContextMenu', ctxMenuInjection)
+    // injectContextMenu('pronoundb-user-add-pronouns-dm', 'DMUserContextMenu', ctxMenuInjection)
 
     // fix for messages in search and inbox
     for (const component of [ 'ChannelMessage', 'InboxMessage' ]) {
