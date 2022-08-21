@@ -83,17 +83,23 @@ class PronounDB extends Plugin {
       return res
     })
 
-    inject('pronoundb-popout-render', UserPopOutComponents, 'UserPopoutProfileText', function ([ { user } ], res) {
-      if (!res.props.children[3]) {
+    inject('pronoundb-popout-render', UserPopOutComponents, 'UserPopoutProfileText', function ([ { displayProfile } ], res) {
+      // FIXME: Hotfix for the UserBio component changing. Currently just always displays the pronouns as their own section.
+      if (!res.props.children[3] || true) {
         res.props.children.push(
           React.createElement(Pronouns, {
-            userId: user.id,
+            userId: displayProfile.userId,
             region: 'popout',
             render: (p) => React.createElement(
               'div',
-              { className: 'aboutMeSection-PUghFQ' },
-              React.createElement('h3', { className: 'aboutMeTitle-3pjiS7 base-21yXnu size12-oc4dx4 muted-eZM05q uppercase-2unHJn' }, 'Pronouns'),
-              React.createElement('div', { className: 'aboutMeBody-1J8rhz markup-eYLPri clamped-2ZePhX' }, p)
+              { className: 'userInfoSection-3her-v' },
+              React.createElement('h3', {
+                className: 'eyebrow-Ejf06y defaultColor-HXu-5n userInfoTitle-39qq0Y',
+                style: { color: 'var(--header-secondary)' }
+              },'Pronouns'),
+              React.createElement('div', {
+                className: 'userInfoBody-1zgAd0 markup-eYLPri clamped-2ZePhX'
+              }, p)
             )
           })
         )
@@ -101,9 +107,9 @@ class PronounDB extends Plugin {
         res.props.children[3].props.children.push(
           React.createElement(
             'div',
-            { className: 'pronoundb-pronouns aboutMeBody-1J8rhz markup-eYLPri clamped-2ZePhX' },
+            { className: 'pronoundb-pronouns userInfoBody-1zgAd0 markup-eYLPri clamped-2ZePhX' },
             React.createElement(Pronouns, {
-              userId: user.id,
+              userId: displayProfile.userId,
               region: 'popout',
               prefix: '\n'
             })
@@ -149,21 +155,21 @@ class PronounDB extends Plugin {
       return res
     })
 
-    function ctxMenuInjection ([ { user } ], res) {
-      const pronouns = usePronouns(user.id)
-      const group = findInReactTree(res, (n) => n.children?.find?.((c) => c?.props?.id === 'note'))
-      if (!group) return res
+    // function ctxMenuInjection ([ { user } ], res) {
+    //   const pronouns = usePronouns(user.id)
+    //   const group = findInReactTree(res, (n) => n.children?.find?.((c) => c?.props?.id === 'note'))
+    //   if (!group) return res
 
-      const note = group.children.indexOf((n) => n?.props?.id === 'note')
-      if (pronouns === 'unspecified') {
-        group.children.splice(note, 0, React.createElement(Menu.MenuItem, { id: 'pronoundb', label: 'Add Pronouns', action: () => _this._promptAddPronouns(user) }))
-      }
+    //   const note = group.children.indexOf((n) => n?.props?.id === 'note')
+    //   if (pronouns === 'unspecified') {
+    //     group.children.splice(note, 0, React.createElement(Menu.MenuItem, { id: 'pronoundb', label: 'Add Pronouns', action: () => _this._promptAddPronouns(user) }))
+    //   }
 
-      return res
-    }
+    //   return res
+    // }
 
-    injectContextMenu('pronoundb-user-add-pronouns-guild', 'GuildChannelUserContextMenu', ctxMenuInjection)
-    injectContextMenu('pronoundb-user-add-pronouns-dm', 'DMUserContextMenu', ctxMenuInjection)
+    // injectContextMenu('pronoundb-user-add-pronouns-guild', 'GuildChannelUserContextMenu', ctxMenuInjection)
+    // injectContextMenu('pronoundb-user-add-pronouns-dm', 'DMUserContextMenu', ctxMenuInjection)
 
     // fix for messages in search and inbox
     for (const component of [ 'ChannelMessage', 'InboxMessage' ]) {
